@@ -1,4 +1,4 @@
-# Contributing to Bruce DIY Flipper
+# Contributing to Bruce But Better
 
 Thanks for your interest! Bug fixes, new modules, board ports, and documentation are all welcome.
 
@@ -6,7 +6,7 @@ This project is a hardware-specific fork of [Bruce](https://github.com/pr3y/Bruc
 
 ## Ways to contribute
 
-- **Report a bug** — [open an issue](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/issues/new/choose) with steps to reproduce, board, and what you expected.
+- **Report a bug** — [open an issue](https://github.com/modabucksmain-pixel/BruceButBetter/issues/new/choose) with steps to reproduce, board, and what you expected.
 - **Suggest a feature** — open an issue describing the use case.
 - **Send a fix or feature** — open a Pull Request (see below).
 - **Improve docs** — README, pinout, this guide.
@@ -16,8 +16,8 @@ This project is a hardware-specific fork of [Bruce](https://github.com/pr3y/Bruc
 You need [PlatformIO](https://platformio.org/) (CLI or the VS Code extension).
 
 ```sh
-git clone https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper.git
-cd Bruce-DIY-Flipper
+git clone https://github.com/modabucksmain-pixel/BruceButBetter.git
+cd BruceButBetter
 
 # Build
 pio run -e esp32-s3-devkitc-1-psram

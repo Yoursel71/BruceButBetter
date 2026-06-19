@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="assets/banner.svg" alt="Bruce DIY Flipper Zero" width="100%">
+<img src="assets/banner.svg" alt="Bruce But Better" width="100%">
 
-# BRUCE DIY FLIPPER — ESP32-S3 N16R8
+# BRUCE BUT BETTER — ESP32-S3 N16R8
 
 **Downstream build of the [Bruce](https://github.com/pr3y/Bruce) firmware for a hand-built ESP32-S3 multitool.**
 
@@ -15,15 +15,15 @@ Sub-GHz · NFC/RFID · IR · WiFi/BLE · NRF24 · Si5351 signal generator — on
 [![PlatformIO](https://img.shields.io/badge/PLATFORMIO-ARDUINO-0d1117?style=for-the-badge&logo=platformio&logoColor=FF7F00)](https://platformio.org/)
 [![AGPL v3](https://img.shields.io/badge/LICENSE-AGPL_v3-8b949e?style=for-the-badge)](./LICENSE)
 
-[![Stars](https://img.shields.io/github/stars/modabucksmain-pixel/Bruce-DIY-Flipper?style=flat-square&color=2ea043&logo=github&label=stars)](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/stargazers)
-[![Forks](https://img.shields.io/github/forks/modabucksmain-pixel/Bruce-DIY-Flipper?style=flat-square&color=1f6feb&logo=github&label=forks)](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/network/members)
-[![Issues](https://img.shields.io/github/issues/modabucksmain-pixel/Bruce-DIY-Flipper?style=flat-square&color=f78166&label=issues)](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/issues)
-[![Last commit](https://img.shields.io/github/last-commit/modabucksmain-pixel/Bruce-DIY-Flipper?style=flat-square&color=6e7681&label=last%20commit)](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/commits)
+[![Stars](https://img.shields.io/github/stars/modabucksmain-pixel/BruceButBetter?style=flat-square&color=2ea043&logo=github&label=stars)](https://github.com/modabucksmain-pixel/BruceButBetter/stargazers)
+[![Forks](https://img.shields.io/github/forks/modabucksmain-pixel/BruceButBetter?style=flat-square&color=1f6feb&logo=github&label=forks)](https://github.com/modabucksmain-pixel/BruceButBetter/network/members)
+[![Issues](https://img.shields.io/github/issues/modabucksmain-pixel/BruceButBetter?style=flat-square&color=f78166&label=issues)](https://github.com/modabucksmain-pixel/BruceButBetter/issues)
+[![Last commit](https://img.shields.io/github/last-commit/modabucksmain-pixel/BruceButBetter?style=flat-square&color=6e7681&label=last%20commit)](https://github.com/modabucksmain-pixel/BruceButBetter/commits)
 
-**[ WEB FLASHER ](https://modabucksmain-pixel.github.io/Bruce-DIY-Flipper/)** ·
-**[ RELEASES ](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/releases)** ·
+**[ WEB FLASHER ](https://modabucksmain-pixel.github.io/BruceButBetter/)** ·
+**[ RELEASES ](https://github.com/modabucksmain-pixel/BruceButBetter/releases)** ·
 **[ CONTRIBUTE ](./CONTRIBUTING.md)** ·
-**[ REPORT A BUG ](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/issues/new/choose)**
+**[ REPORT A BUG ](https://github.com/modabucksmain-pixel/BruceButBetter/issues/new/choose)**
 
 </div>
 
@@ -46,13 +46,13 @@ dual USB-C, and an added Si5351 signal-generator module. One binary covers every
 
 ### Browser flasher (recommended)
 
-**[modabucksmain-pixel.github.io/Bruce-DIY-Flipper](https://modabucksmain-pixel.github.io/Bruce-DIY-Flipper/)**
+**[modabucksmain-pixel.github.io/BruceButBetter](https://modabucksmain-pixel.github.io/BruceButBetter/)**
 
 Open in desktop Chrome/Edge, connect via the **left USB-C** (UART), click **Flash**. No toolchain needed.
 
 ### Manual
 
-Latest builds: **[Releases](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/releases/tag/v1.0.0)**
+Latest builds: **[Releases](https://github.com/modabucksmain-pixel/BruceButBetter/releases/tag/v1.0.0)**
 
 Single file (merged — bootloader + partitions + boot_app0 + firmware, offset `0x0`):
 
@@ -261,7 +261,7 @@ Bug fixes, new modules, board ports, docs — all welcome. Full guide: **[CONTRI
 2. Confirm it compiles: `pio run -e esp32-s3-devkitc-1-psram`
 3. Format C/C++ with `clang-format` (config in `.clang-format`)
 4. Commit, push, open a Pull Request
-5. Bug or idea? [Open an issue](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/issues/new/choose)
+5. Bug or idea? [Open an issue](https://github.com/modabucksmain-pixel/BruceButBetter/issues/new/choose)
 
 Adding hardware? Pin maps live in `boards/ESP-General/pins_arduino.h`; a new module goes under
 `src/modules/<name>/` with its menu in `src/core/menu_items/`.

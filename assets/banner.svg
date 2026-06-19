@@ -42,7 +42,7 @@
 
   <!-- title -->
   <text x="230" y="120" font-size="62" font-weight="800" fill="#e6edf3" letter-spacing="1">BRUCE</text>
-  <text x="232" y="168" font-size="30" font-weight="700" fill="url(#grn)" letter-spacing="6">DIY  FLIPPER</text>
+  <text x="232" y="168" font-size="30" font-weight="700" fill="url(#grn)" letter-spacing="6">BUT BETTER</text>
   <text x="234" y="205" font-size="18" font-weight="500" fill="#8b949e" letter-spacing="2">ESP32-S3 N16R8  ·  Red Team Multitool</text>
 
   <!-- module chips -->
