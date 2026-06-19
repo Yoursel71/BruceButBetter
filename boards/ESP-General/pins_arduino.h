@@ -104,7 +104,7 @@ static const uint8_t SS   = SPI_SS_PIN;
 #define FG 3
 
 // ── Device name ─────────────────────────────────────────────────────────────────
-#define DEVICE_NAME "\"DIY Flipper\""
+#define DEVICE_NAME "\"BruceButBetter\""
 
 // ── Reserved pins (DO NOT USE!) ───────────────────────────────────────────────
 // GPIO 19-20 : Native USB D+/D-
