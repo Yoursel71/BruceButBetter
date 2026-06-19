@@ -8,6 +8,11 @@ ESP32-S3 N16R8 tabanlı, kendin-yap (DIY) Flipper Zero. [Bruce](https://github.c
 
 ## 📦 İndir / Flash
 
+### 🌐 Tarayıcıdan tek tıkla (en kolay)
+**[→ Web Flasher: modabucksmain-pixel.github.io/Bruce-DIY-Flipper](https://modabucksmain-pixel.github.io/Bruce-DIY-Flipper/)**
+Chrome/Edge (masaüstü) ile aç, cihazı **sol USB-C** ile bağla, **Flash Et**'e bas. Kurulum gerekmez.
+
+### 📥 Manuel
 En son derlenmiş bin'ler: **[Releases → v1.0.0](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/releases/tag/v1.0.0)**
 
 ### Tek dosya (en kolay)
