@@ -1,4 +1,29 @@
+<div align="center">
+
+<img src="assets/banner.svg" alt="Bruce DIY Flipper Zero" width="100%">
+
 # 🦈 Bruce DIY Flipper Zero — ESP32-S3 N16R8
+
+**A do-it-yourself Flipper Zero built around the ESP32-S3 N16R8.**
+Sub-GHz · NFC/RFID · IR · WiFi/BLE attacks · NRF24 · Si5351 signal generator — all in one device.
+
+<br>
+
+[![ESP32-S3](https://img.shields.io/badge/ESP32--S3-N16R8-E7352C?logo=espressif&logoColor=white)](https://www.espressif.com/en/products/socs/esp32-s3)
+[![PlatformIO](https://img.shields.io/badge/PlatformIO-Arduino-FF7F00?logo=platformio&logoColor=white)](https://platformio.org/)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-3fb950)](./LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-2ea043?logo=github)](./CONTRIBUTING.md)
+
+[![Stars](https://img.shields.io/github/stars/modabucksmain-pixel/Bruce-DIY-Flipper?style=flat&color=2ea043&logo=github)](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/stargazers)
+[![Forks](https://img.shields.io/github/forks/modabucksmain-pixel/Bruce-DIY-Flipper?style=flat&color=1f6feb&logo=github)](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/network/members)
+[![Issues](https://img.shields.io/github/issues/modabucksmain-pixel/Bruce-DIY-Flipper?color=f78166)](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/issues)
+[![Last commit](https://img.shields.io/github/last-commit/modabucksmain-pixel/Bruce-DIY-Flipper?color=8b949e)](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/commits)
+
+### [🌐 Web Flasher](https://modabucksmain-pixel.github.io/Bruce-DIY-Flipper/) · [📥 Releases](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/releases) · [🤝 Contribute](./CONTRIBUTING.md) · [🐛 Report a bug](https://github.com/modabucksmain-pixel/Bruce-DIY-Flipper/issues/new/choose)
+
+</div>
+
+---
 
 A do-it-yourself Flipper Zero built around the ESP32-S3 N16R8. This is the [Bruce](https://github.com/pr3y/Bruce) firmware adapted to this hardware. Sub-GHz, NFC/RFID, IR, WiFi/BLE attacks, NRF24, and a Si5351 signal generator — all in one device.
 
