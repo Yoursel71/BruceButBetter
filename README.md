@@ -175,6 +175,30 @@ Output: `.pio/build/esp32-s3-devkitc-1-psram/firmware.bin`. Active board set by 
 
 ---
 
+## SUPPORTED BOARDS
+
+The default build targets the custom **ESP-General** DIY hardware. Common upstream Bruce boards are also
+ported in — build any of them with `pio run -e <env>`:
+
+| Board | Build env (`-e`) | Notes |
+|---|---|---|
+| **DIY ESP32-S3 N16R8** | `esp32-s3-devkitc-1-psram` | **Primary** — this project's board (default) |
+| M5Stack Cardputer | `m5stack-cardputer` | Keyboard handheld |
+| M5StickC Plus2 | `m5stack-cplus2` | Compact stick |
+| M5Stack CoreS3 | `m5stack-cores3` | Touch core |
+| CYD (ESP32-2432S028) | `CYD-2432S028` | Cheap Yellow Display; more CYD variants in the `.ini` |
+| Lilygo T-Embed CC1101 | `lilygo-t-embed-cc1101` | Built-in Sub-GHz |
+| ESP32-C5 | `esp32-c5` | Dual-band RISC-V |
+
+Boards auto-register via the `extra_configs` glob in `platformio.ini` — drop a `boards/<name>/` dir in
+and it appears. Pin maps live in each `boards/<name>/pins_arduino.h`; features degrade gracefully when a
+chip is absent, so a single build runs across mixed hardware.
+
+> Board configs are ported from upstream [Bruce](https://github.com/pr3y/Bruce). The DIY ESP-General
+> target is the one actively maintained here; the rest track upstream.
+
+---
+
 ## CAPABILITIES
 
 Nine attack/utility modules. Quick map, then the detail:
