@@ -15,7 +15,9 @@
 #include "si5351_module.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
+#include <LittleFS.h>
 #include <si5351.h>
+#include <vector>
 #include <globals.h>
 
 // ── Singleton & state ─────────────────────────────────────────────────────────
@@ -638,6 +640,61 @@ void si5351_calibration() {
 
     si.output_enable(SI5351_CLK0, 0);
     (void)saved;
+}
+
+// ── Favourites (persisted to LittleFS) ───────────────────────────────────────
+#define SI5351_FAV_FILE "/si5351_fav.txt"
+
+static std::vector<uint32_t> si_load_favs() {
+    std::vector<uint32_t> v;
+    if (LittleFS.exists(SI5351_FAV_FILE)) {
+        File f = LittleFS.open(SI5351_FAV_FILE, FILE_READ);
+        while (f && f.available()) {
+            String line = f.readStringUntil('\n');
+            line.trim();
+            if (line.length()) {
+                uint32_t hz = (uint32_t)strtoul(line.c_str(), nullptr, 10);
+                if (hz) v.push_back(hz);
+            }
+        }
+        if (f) f.close();
+    }
+    return v;
+}
+
+static void si_save_favs(const std::vector<uint32_t> &v) {
+    File f = LittleFS.open(SI5351_FAV_FILE, FILE_WRITE);
+    if (!f) return;
+    for (uint32_t hz : v) f.println(hz);
+    f.close();
+}
+
+void si5351_favorites() {
+    if (!si_ensure_init()) return;
+
+    std::vector<uint32_t> favs = si_load_favs();
+
+    options.clear();
+    options.push_back({"+ Save CLK0 freq", [&]() {
+                           favs.push_back((uint32_t)si_freq[0]);
+                           si_save_favs(favs);
+                       }});
+    for (size_t i = 0; i < favs.size(); i++) {
+        uint32_t hz = favs[i];
+        String lbl = freqLabel((uint64_t)hz);
+        options.push_back({lbl.c_str(), [hz]() {
+                               si_apply(0, (uint64_t)hz);
+                               si.output_enable(SI5351_CLK0, 1);
+                           }});
+    }
+    if (!favs.empty()) {
+        options.push_back({"Clear all", [&]() {
+                               favs.clear();
+                               si_save_favs(favs);
+                           }});
+    }
+    options.push_back({"Back", [=]() { returnToMenu = true; }});
+    loopOptions(options, MENU_TYPE_SUBMENU, "Favorites");
 }
 
 #endif // HAS_SI5351

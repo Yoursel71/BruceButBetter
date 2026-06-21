@@ -27,4 +27,7 @@ void si5351_presets();
 // correction (ppb) live so you can zero-beat it against a known source.
 void si5351_calibration();
 
+// Save / recall favourite CLK0 frequencies (persisted to /si5351_fav.txt).
+void si5351_favorites();
+
 #endif // HAS_SI5351

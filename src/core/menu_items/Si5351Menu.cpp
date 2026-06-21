@@ -13,6 +13,7 @@ void Si5351Menu::optionsMenu() {
         {"AM Band",        si5351_am_band            },
         {"Presets",        si5351_presets            },
         {"Calibrate",      si5351_calibration        },
+        {"Favorites",      si5351_favorites          },
     };
     addOptionToMainMenu();
     loopOptions(options, MENU_TYPE_SUBMENU, "RF Gen");
