@@ -39,21 +39,15 @@
     /* atmosphere: neon glow blobs + perspective grid + scanlines */
     body::before{content:""; position:fixed; inset:0; z-index:-3; pointer-events:none;
       background:
-        radial-gradient(900px 480px at 18% -8%, rgba(255,46,151,.16), transparent 60%),
-        radial-gradient(820px 520px at 88% 6%, rgba(34,231,255,.13), transparent 62%),
-        radial-gradient(700px 600px at 50% 108%, rgba(168,85,247,.12), transparent 60%),
+        radial-gradient(900px 480px at 18% -8%, rgba(255,46,151,.08), transparent 60%),
+        radial-gradient(820px 520px at 88% 6%, rgba(34,231,255,.06), transparent 62%),
         linear-gradient(180deg,var(--bg),var(--bg2))}
-    body::after{content:""; position:fixed; inset:0; z-index:-1; pointer-events:none; opacity:.35;
-      background:repeating-linear-gradient(0deg, rgba(255,255,255,.025) 0 1px, transparent 1px 3px)}
-    .scene{position:fixed; inset:0; z-index:-2; pointer-events:none; overflow:hidden;
-      mask-image:linear-gradient(180deg,#000 0 38%,transparent 78%);
-      -webkit-mask-image:linear-gradient(180deg,#000 0 38%,transparent 78%)}
-    .scene i{position:absolute; left:-25%; right:-25%; top:0; bottom:-40%;
-      background-image:linear-gradient(rgba(168,85,247,.18) 1px,transparent 1px),
-                       linear-gradient(90deg,rgba(34,231,255,.14) 1px,transparent 1px);
-      background-size:54px 54px; transform:perspective(420px) rotateX(62deg);
-      transform-origin:50% 0; animation:flow 7s linear infinite}
-    @keyframes flow{to{background-position:0 54px}}
+    .scene{position:fixed; inset:0; z-index:-2; pointer-events:none; opacity:.6;
+      background-image:linear-gradient(rgba(168,85,247,.045) 1px,transparent 1px),
+                       linear-gradient(90deg,rgba(34,231,255,.035) 1px,transparent 1px);
+      background-size:62px 62px;
+      mask-image:radial-gradient(ellipse 78% 56% at 50% 0,#000,transparent 72%);
+      -webkit-mask-image:radial-gradient(ellipse 78% 56% at 50% 0,#000,transparent 72%)}
     a{color:var(--cyan); text-decoration:none}
     a:hover{color:#7df2ff}
     h1,h2,h3,h4{margin:0; line-height:1.12; letter-spacing:-.01em}
@@ -103,16 +97,8 @@
       box-shadow:0 0 8px var(--magenta); animation:pulse 1.8s infinite}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
     .hero h1{font-size:clamp(2.5rem,7vw,5rem); font-weight:700; letter-spacing:-.03em; margin:0}
-    .glitch{position:relative; display:inline-block;
+    .glitch{display:inline-block;
       background:var(--grad); -webkit-background-clip:text; background-clip:text; color:transparent}
-    .glitch::before,.glitch::after{content:attr(data-text); position:absolute; inset:0;
-      -webkit-background-clip:text; background-clip:text; color:transparent; opacity:.85}
-    .glitch::before{background:linear-gradient(92deg,var(--magenta),var(--magenta));
-      animation:gl1 3.6s infinite steps(2,end); clip-path:inset(0 0 55% 0)}
-    .glitch::after{background:linear-gradient(92deg,var(--cyan),var(--cyan));
-      animation:gl2 3.2s infinite steps(2,end); clip-path:inset(58% 0 0 0)}
-    @keyframes gl1{0%,92%,100%{transform:none;opacity:0}93%{transform:translate(-3px,-1px);opacity:.9}96%{transform:translate(2px,1px);opacity:.7}}
-    @keyframes gl2{0%,90%,100%{transform:none;opacity:0}94%{transform:translate(3px,1px);opacity:.85}98%{transform:translate(-2px,-1px);opacity:.6}}
     .hero .sub-h1{display:block; font-size:clamp(1rem,2.4vw,1.4rem); color:var(--muted); font-weight:500;
       letter-spacing:.02em; margin-top:14px}
     .term{font-family:var(--mono); color:var(--cyan); font-size:1rem; margin:20px 0 4px; min-height:1.4em;
@@ -125,12 +111,12 @@
     .btn{display:inline-flex; align-items:center; gap:10px; border:none; border-radius:10px;
       padding:14px 26px; font-family:var(--mono); font-size:.92rem; font-weight:700; cursor:pointer;
       letter-spacing:.03em; transition:.16s; text-transform:uppercase}
-    .btn-primary{background:var(--grad); color:#0a0612; box-shadow:0 0 28px -6px var(--magenta)}
-    .btn-primary:hover{transform:translateY(-2px); box-shadow:0 0 42px -4px var(--violet)}
+    .btn-primary{background:var(--grad); color:#0a0612; box-shadow:0 0 20px -8px var(--magenta)}
+    .btn-primary:hover{transform:translateY(-2px); box-shadow:0 0 30px -8px var(--violet)}
     .btn-ghost{background:transparent; color:var(--fg); border:1px solid var(--line2)}
     .btn-ghost:hover{border-color:var(--cyan); color:var(--cyan); box-shadow:0 0 22px -10px var(--cyan)}
     .hero-banner{max-width:760px; width:100%; margin:8px auto 0; display:block; border-radius:14px;
-      border:1px solid var(--line2); box-shadow:0 30px 90px -34px rgba(168,85,247,.55)}
+      border:1px solid var(--line2); box-shadow:0 24px 70px -40px rgba(168,85,247,.4)}
 
     /* STATS */
     .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:52px}
