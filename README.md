@@ -91,6 +91,8 @@ modules wired in on top of upstream Bruce.
 | **Spectrum → CSV capture** | RF → *Spectrum → CSV* sweeps the selected sub-GHz range and logs `freq_mhz,rssi_dbm` for every step to `/BruceRF/spectrum_<ms>.csv` — pull the SD and analyse the band on your PC. |
 | **NRF24 spectrum → CSV** | NRF24 → *Spectrum → CSV* samples the 2.4 GHz band and logs `channel,freq_mhz,activity` for all 80 channels to `/BruceRF/nrf_spectrum_<ms>.csv`, with the busiest channel reported. |
 
+Plot either capture on your PC with [`tools/plot_spectrum.py`](tools/plot_spectrum.py) (`python tools/plot_spectrum.py spectrum_<ms>.csv`).
+
 ### Packaging
 - **One-click [browser flasher](https://Yoursel71.github.io/BruceButBetter/)** — pick **any of 45 boards** and
   flash from the browser (esp-web-tools), no toolchain.
