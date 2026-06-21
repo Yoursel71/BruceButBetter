@@ -89,6 +89,7 @@ modules wired in on top of upstream Bruce.
 | **Dual-NRF24 spectrum** | When a second NRF24 is populated, the 2.4 GHz analyzer scans odd channels on radio 2 in parallel with radio 1's even channels — ~2× faster sweep (`2x` badge). Auto-falls back to single radio. |
 | **CC1101 peak-hold spectrum** | The sub-GHz RSSI analyzer keeps a peak-hold cap above each bar so brief signals stay on screen, and the Max readout shows the strongest signal's dBm next to its frequency. |
 | **Spectrum → CSV capture** | RF → *Spectrum → CSV* sweeps the selected sub-GHz range and logs `freq_mhz,rssi_dbm` for every step to `/BruceRF/spectrum_<ms>.csv` — pull the SD and analyse the band on your PC. |
+| **NRF24 spectrum → CSV** | NRF24 → *Spectrum → CSV* samples the 2.4 GHz band and logs `channel,freq_mhz,activity` for all 80 channels to `/BruceRF/nrf_spectrum_<ms>.csv`, with the busiest channel reported. |
 
 ### Packaging
 - **One-click [browser flasher](https://Yoursel71.github.io/BruceButBetter/)** — pick **any of 45 boards** and
