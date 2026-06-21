@@ -4,6 +4,13 @@ All notable changes to BruceButBetter. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/); this project is a downstream fork of
 [pr3y/Bruce](https://github.com/pr3y/Bruce).
 
+## [Unreleased]
+
+### Added
+- **CC1101 RSSI spectrum: peak-hold + dBm.** The sub-GHz range-scan analyzer (RF → RSSI Spectrum)
+  now keeps a peak-hold cap above each bar so brief signals stay on screen, and the Max readout shows
+  the strongest signal's dBm next to its frequency. Mono-OLED friendly.
+
 ## [1.2.0] — 2026-06-21
 
 ### Added
