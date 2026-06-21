@@ -5,6 +5,8 @@
 
 void nrf_spectrum();
 
-String scanChannels(bool web = false);
+// dual=true uses a second NRF24 (NRF24_2_*) to scan odd channels in parallel,
+// roughly halving the sweep time. Falls back to single radio when unavailable.
+String scanChannels(bool web = false, bool dual = false);
 
 #endif
