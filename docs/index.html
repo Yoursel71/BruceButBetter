@@ -275,7 +275,10 @@
 
     <div class="flash-card hud">
       <h3>READY_TO_FLASH</h3>
-      <p style="color:var(--muted); margin:0 0 16px; font-family:var(--mono); font-size:.9rem">Pick your board, connect via the LEFT USB-C (UART), then flash. <b style="color:var(--cyan)">45 boards</b> &mdash; ESP32-S3 &amp; classic ESP32, straight from the browser.</p>
+      <p style="color:var(--muted); margin:0 0 16px; font-family:var(--mono); font-size:.9rem">Pick a <b style="color:var(--cyan)">firmware version</b> and your board, connect via the LEFT USB-C (UART), then flash. <b style="color:var(--cyan)">50+ boards</b> &mdash; ESP32-S3 &amp; classic ESP32, straight from the browser.</p>
+
+      <label for="verSelect" class="board-label">// firmware_version</label>
+      <select id="verSelect" class="board-select" aria-label="Select firmware version"></select>
 
       <label for="boardSelect" class="board-label">// target_board</label>
       <select id="boardSelect" class="board-select" aria-label="Select board"></select>
@@ -296,9 +299,9 @@
         install CH34x / native-USB driver. desktop Chrome or Edge required.</div>
 
       <p style="color:var(--muted); margin:18px 0 0; font-family:var(--mono); font-size:.84rem">
-        all 45 images are also on the
-        <a href="https://github.com/Yoursel71/BruceButBetter/releases/latest">releases page</a> for manual
-        esptool flashing. only esp32-c5 and nesso-n1 build from source.</p>
+        every image is also on the
+        <a href="https://github.com/Yoursel71/BruceButBetter/releases">releases page</a> (per version) for
+        manual esptool flashing. esp32-c5 / nesso-n1 build from source.</p>
     </div>
   </div>
 </section>
@@ -533,32 +536,63 @@ GPIO <span class="d">43-44</span>  -> UART0 TX/RX (debug)
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 
-  // ---- multi-board flasher: pick any of 45 boards, swap esp-web-tools manifest ----
+  // ---- multi-board flasher: pick a firmware version + board, swap esp-web-tools manifest ----
+  // Version + board lists come from versions.json in the (same-origin) bins repo, so adding a
+  // new release = drop a vX.Y.Z/ folder + a line in versions.json — no edit to this page.
   const BBB_BINS="https://yoursel71.github.io/BruceButBetter-bins";
-  const BBB_BOARDS=[{"env":"CYD-2432S028","chip":"ESP32"},{"env":"CYD-2432W328C","chip":"ESP32"},{"env":"CYD-2432W328C_2","chip":"ESP32"},{"env":"CYD-2432W328R-or-S024R","chip":"ESP32"},{"env":"CYD-2USB","chip":"ESP32"},{"env":"CYD-3248S035C","chip":"ESP32"},{"env":"CYD-3248S035R","chip":"ESP32"},{"env":"ES3C28P","chip":"ESP32-S3"},{"env":"Marauder-Mini","chip":"ESP32"},{"env":"Marauder-V4-V6","chip":"ESP32"},{"env":"Marauder-v61","chip":"ESP32"},{"env":"Marauder-v7","chip":"ESP32"},{"env":"Phantom_S024R","chip":"ESP32"},{"env":"WaveSentry-R1","chip":"ESP32"},{"env":"elecrow-24B","chip":"ESP32"},{"env":"elecrow-28B","chip":"ESP32"},{"env":"elecrow-35B","chip":"ESP32"},{"env":"elecrow-35Bv2_2","chip":"ESP32"},{"env":"esp32-s3-devkitc-1-psram","chip":"ESP32-S3"},{"env":"esp32-s3-devkitc-1","chip":"ESP32-S3"},{"env":"lilygo-t-deck-pro","chip":"ESP32-S3"},{"env":"lilygo-t-deck","chip":"ESP32-S3"},{"env":"lilygo-t-display-S3-pro","chip":"ESP32-S3"},{"env":"lilygo-t-display-s3-mmc","chip":"ESP32-S3"},{"env":"lilygo-t-display-s3-touch-mmc","chip":"ESP32-S3"},{"env":"lilygo-t-display-s3-touch","chip":"ESP32-S3"},{"env":"lilygo-t-display-s3","chip":"ESP32-S3"},{"env":"lilygo-t-display-ttgo","chip":"ESP32"},{"env":"lilygo-t-embed-cc1101","chip":"ESP32-S3"},{"env":"lilygo-t-embed","chip":"ESP32-S3"},{"env":"lilygo-t-hmi","chip":"ESP32-S3"},{"env":"lilygo-t-lora-pager","chip":"ESP32-S3"},{"env":"lilygo-t-watch-s3","chip":"ESP32-S3"},{"env":"m5stack-cardputer","chip":"ESP32-S3"},{"env":"m5stack-core16mb","chip":"ESP32"},{"env":"m5stack-core2","chip":"ESP32"},{"env":"m5stack-core4mb","chip":"ESP32"},{"env":"m5stack-cores3","chip":"ESP32-S3"},{"env":"m5stack-cplus1_1","chip":"ESP32"},{"env":"m5stack-cplus2","chip":"ESP32"},{"env":"m5stack-dinmeter","chip":"ESP32-S3"},{"env":"m5stack-sticks3","chip":"ESP32-S3"},{"env":"reaper","chip":"ESP32-S3"},{"env":"smoochiee-board","chip":"ESP32-S3"},{"env":"xk404","chip":"ESP32-S3"}];
   (function(){
-    const sel=document.getElementById('boardSelect'), ib=document.getElementById('installBtn');
-    if(!sel||!ib) return;
-    const primary="esp32-s3-devkitc-1-psram";
-    const def=document.createElement('option');
-    def.value=primary; def.dataset.chip="ESP32-S3"; def.dataset.local="manifest.json";
-    def.textContent="ESP-General - ESP32-S3 N16R8 (default)"; def.selected=true; sel.appendChild(def);
+    const vsel=document.getElementById('verSelect');
+    const sel=document.getElementById('boardSelect');
+    const ib=document.getElementById('installBtn');
+    if(!vsel||!sel||!ib) return;
+    const DEFAULT_ENV="esp32-s3-devkitc-1-psram";
     const by=(a,b)=>a.env.toLowerCase()<b.env.toLowerCase()?-1:1;
-    function grp(label,list){ if(!list.length) return; const g=document.createElement('optgroup'); g.label=label;
-      list.forEach(b=>{const o=document.createElement('option'); o.value=b.env; o.dataset.chip=b.chip; o.textContent=b.env; g.appendChild(o);}); sel.appendChild(g); }
-    grp("ESP32-S3 boards", BBB_BOARDS.filter(b=>b.chip==="ESP32-S3"&&b.env!==primary).sort(by));
-    grp("ESP32 (classic) boards", BBB_BOARDS.filter(b=>b.chip!=="ESP32-S3").sort(by));
-    let last=null;
-    function apply(){
-      const o=sel.selectedOptions[0];
-      if(o.dataset.local){ ib.setAttribute('manifest', o.dataset.local); return; }
-      const m={name:"BruceButBetter "+o.value, version:"1.0.0", new_install_prompt_erase:true,
-        builds:[{chipFamily:o.dataset.chip, parts:[{path:BBB_BINS+"/Bruce-"+o.value+".bin", offset:0}]}]};
+    let DATA=null, last=null;
+
+    const curVer=()=>DATA.versions.find(v=>v.id===vsel.value)||DATA.versions[0];
+
+    function buildVersions(){
+      vsel.innerHTML="";
+      DATA.versions.forEach(v=>{
+        const o=document.createElement('option');
+        o.value=v.id;
+        o.textContent=(v.label||v.id)+" — "+v.boards.length+" boards"+(v.id===DATA.latest?" (latest)":"");
+        vsel.appendChild(o);
+      });
+      vsel.value=DATA.latest;
+    }
+    function buildBoards(){
+      const v=curVer(); sel.innerHTML="";
+      const def=v.boards.find(b=>b.env===DEFAULT_ENV);
+      if(def){ const o=document.createElement('option'); o.value=def.env; o.dataset.chip=def.chip;
+        o.textContent="ESP-General · ESP32-S3 N16R8 (default)"; o.selected=true; sel.appendChild(o); }
+      const grp=(label,fam)=>{ const l=v.boards.filter(b=>b.chip===fam&&b.env!==DEFAULT_ENV).sort(by);
+        if(!l.length) return; const g=document.createElement('optgroup'); g.label=label;
+        l.forEach(b=>{const o=document.createElement('option'); o.value=b.env; o.dataset.chip=b.chip; o.textContent=b.env; g.appendChild(o);}); sel.appendChild(g); };
+      grp("ESP32-S3 boards","ESP32-S3");
+      grp("ESP32 (classic) boards","ESP32");
+      applyManifest();
+    }
+    function applyManifest(){
+      const v=curVer(), o=sel.selectedOptions[0]; if(!o) return;
+      const base=BBB_BINS+(v.dir?("/"+v.dir):"");
+      const m={name:"BruceButBetter "+o.value+" "+v.id, version:v.id.replace(/^v/,""),
+        new_install_prompt_erase:true,
+        builds:[{chipFamily:o.dataset.chip, parts:[{path:base+"/Bruce-"+o.value+".bin", offset:0}]}]};
       if(last) URL.revokeObjectURL(last);
       last=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:"application/json"}));
       ib.setAttribute('manifest', last);
     }
-    sel.addEventListener('change', apply); apply();
+    vsel.addEventListener('change', buildBoards);
+    sel.addEventListener('change', applyManifest);
+
+    fetch(BBB_BINS+"/versions.json",{cache:"no-cache"}).then(r=>r.json()).then(d=>{
+      DATA=d; buildVersions(); buildBoards();
+    }).catch(()=>{ // fallback: default board off the static manifest so the page still flashes
+      ib.setAttribute('manifest','manifest.json');
+      vsel.innerHTML='<option>latest</option>';
+      sel.innerHTML='<option>ESP-General · ESP32-S3 N16R8 (default)</option>';
+    });
   })();
 </script>
 </body>
