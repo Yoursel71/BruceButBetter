@@ -1,6 +1,8 @@
 #include "nrf_spectrum.h"
 #include "core/display.h"
 #include "core/mykeyboard.h"
+#include "core/sd_functions.h"
+#include <cstring>
 
 #define CHANNELS 80
 #define RGB565(r, g, b) ((((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3)))
@@ -135,4 +137,77 @@ void nrf_spectrum() {
         delay(500);
         return;
     }
+}
+
+void nrf_spectrum_csv() {
+    tft.fillScreen(bruceConfig.bgColor);
+    tft.setTextSize(FP);
+    tft.drawString("2.40Ghz", 0, tftHeight - LH);
+    tft.drawCentreString("2.44Ghz", tftWidth / 2, tftHeight - LH, 1);
+    tft.drawRightString("2.48Ghz", tftWidth, tftHeight - LH, 1);
+
+    if (!nrf_start(NRF_MODE_SPI)) {
+        displayError("NRF24 not found");
+        delay(500);
+        return;
+    }
+    NRFradio.setAutoAck(false);
+    NRFradio.disableCRC();
+    NRFradio.setAddressWidth(2);
+    const uint8_t noiseAddress[][2] = {
+        {0x55, 0x55},
+        {0xAA, 0xAA},
+        {0xA0, 0xAA},
+        {0xAB, 0xAA},
+        {0xAC, 0xAA},
+        {0xAD, 0xAA}
+    };
+    for (uint8_t i = 0; i < 6; ++i) { NRFradio.openReadingPipe(i, noiseAddress[i]); }
+    NRFradio.setDataRate(RF24_1MBPS);
+
+    memset(channel, 0, sizeof(channel)); // fresh accumulation
+
+    tft.setTextColor(bruceConfig.secColor, bruceConfig.bgColor);
+    tft.drawString("REC->CSV [ESC] stop", 2, 2);
+
+    const int sweeps = 240;
+    for (int s = 0; s < sweeps; s++) {
+        if (check(EscPress)) break;
+        scanChannels(false, false); // draws the live spectrum + accumulates channel[]
+    }
+    NRFradio.stopListening();
+    NRFradio.powerDown();
+
+    FS *fs = nullptr;
+    if (!getFsStorage(fs)) {
+        displayError("No SD / storage", true);
+        return;
+    }
+    createFolder(*fs, "/BruceRF");
+    String fname = "/BruceRF/nrf_spectrum_" + String(millis()) + ".csv";
+    File f = (*fs).open(fname, FILE_WRITE);
+    if (!f) {
+        displayError("Cannot open file", true);
+        return;
+    }
+    f.println("channel,freq_mhz,activity");
+    int best = -1, bestCh = 0;
+    for (int i = 0; i < CHANNELS; i++) {
+        f.printf("%d,%d,%u\n", i, 2400 + i, channel[i]);
+        if (channel[i] > best) {
+            best = channel[i];
+            bestCh = i;
+        }
+    }
+    f.close();
+
+    drawMainBorderWithTitle("NRF24 Spectrum -> CSV");
+    padprintln("");
+    padprintln(String(CHANNELS) + " channels saved");
+    padprintln("Busiest ch " + String(bestCh) + "  (" + String(2400 + bestCh) + " MHz)");
+    padprintln(fname);
+    padprintln("");
+    padprintln("[OK]/[ESC] to exit");
+    while (!check(SelPress) && !check(EscPress)) delay(20);
+    returnToMenu = true;
 }

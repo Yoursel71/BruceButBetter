@@ -11,6 +11,7 @@ void NRF24Menu::optionsMenu() {
     options.clear();
     options.push_back({"Information",    nrf_info});
     options.push_back({"Spectrum",       nrf_spectrum});
+    options.push_back({"Spectrum -> CSV", nrf_spectrum_csv});
     #if !defined(LITE_VERSION)
     options.push_back({"MouseJack",      nrf_mousejack});
     #endif
