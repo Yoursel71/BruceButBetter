@@ -91,17 +91,16 @@ modules wired in on top of upstream Bruce.
 
 ## DOWNLOAD / FLASH
 
-> The **web flasher** targets only the **DIY ESP-General build (ESP32-S3 N16R8)**.
-> For every other board, the [latest release](https://github.com/Yoursel71/BruceButBetter/releases/latest)
-> now ships **prebuilt merged binaries for 45 boards** — grab `Bruce-<board>.bin` and flash it at
-> offset `0x0` (see [Manual](#manual)). Only the `esp32-c5` variants and `arduino-nesso-n1` still need
-> a from-source build (`pio run -e <env>`).
+> The **web flasher now flashes any of 45 boards** — pick yours from the board selector and flash from
+> the browser (chip family auto-matched per image; no toolchain). The same merged `Bruce-<board>.bin`
+> images are on the [latest release](https://github.com/Yoursel71/BruceButBetter/releases/latest) for
+> manual `esptool` flashing too. Only the `esp32-c5` variants and `arduino-nesso-n1` build from source.
 
 ### Browser flasher (recommended)
 
 **[Yoursel71.github.io/BruceButBetter](https://Yoursel71.github.io/BruceButBetter/)**
 
-Open in desktop Chrome/Edge, connect via the **left USB-C** (UART), click **Flash**. No toolchain needed.
+Open in desktop Chrome/Edge, **pick your board**, connect via the **left USB-C** (UART), click **Flash**. No toolchain needed.
 
 ### Manual
 
