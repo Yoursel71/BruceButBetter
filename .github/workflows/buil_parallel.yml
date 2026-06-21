@@ -1,12 +1,10 @@
 ---
-name: Build and Push Releases
+name: Build and Push Releases (legacy, manual)
 
+# Superseded by release.yml for tag releases. Tag-trigger removed so a `v*`
+# push doesn't double-build the matrix or fight over release assets. Kept as a
+# manual dispatch for the upstream rolling betaRelease/lastRelease flow.
 on:
-  push:
-    branches:
-      - main, workflow
-    tags:
-      - "*"
   workflow_dispatch:
 
 jobs:
