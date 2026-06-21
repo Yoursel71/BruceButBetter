@@ -33,3 +33,5 @@ lib/mquickjs_headers/mqjs_stdlib_generator.exe
 *.orig
 *.tmp
 *.rej
+/v110-bins/
+/build_v110.sh
