@@ -83,7 +83,7 @@ static const uint8_t SS   = SPI_SS_PIN;
 
 // ── OLED SSD1106G / SH1106 (1.3", 128×64, I2C) ───────────────────────────────
 #define HAS_SCREEN  1
-#define ROTATION    0
+#define ROTATION    2
 #define MINBRIGHT   0
 
 // Display backend selection is handled in ESP-General.ini (LovyanGFX)

@@ -188,7 +188,13 @@ public:
     UARTPins gps_bus = {(gpio_num_t)GPS_SERIAL_RX, (gpio_num_t)GPS_SERIAL_TX};
 
     // Screen Rotation
+#if defined(USE_DIRECT_ROTATION)
+    // Landscape OLED (e.g. 128x64 SH1106): use ROTATION as-is (0/2 = landscape).
+    // The 1/3 remap below forces portrait, which is wrong for a wide 1-bit OLED.
+    int rotation = ROTATION;
+#else
     int rotation = ROTATION > 1 ? 3 : 1;
+#endif
 
     // BLE
     String bleName = String("Keyboard_" + String((uint8_t)(ESP.getEfuseMac() >> 32), HEX));
