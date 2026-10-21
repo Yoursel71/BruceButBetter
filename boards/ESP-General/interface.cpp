@@ -1,5 +1,6 @@
 #include "core/powerSave.h"
 #include "core/utils.h"
+#include "ok_button.h"
 #include <Wire.h>
 #include <interface.h>
 
@@ -56,21 +57,35 @@ void _setBrightness(uint8_t brightval) { (void)brightval; }
 ** Function name: InputHandler()
 ** Description:   6 buttons: UP, DOWN, LEFT, RIGHT, OK(SEL), BACK(ESC)
 **                Active-LOW - all buttons wired to GND, internal pull-up enabled
+**                Tap OK to select; hold OK for 800 ms to go back once.
 ***************************************************************************************/
 void InputHandler(void) {
     static unsigned long tm = 0;
-    if (millis() - tm < 150 && !LongPress) return;
+    static OkButtonGesture ok;
+    static bool okWasDown = false;
+    static bool suppressOk = false;
+    const uint32_t now = millis();
+
+    const auto action = ok.update(digitalRead(SEL_BTN) == BTN_ACT, now);
+    if (ok.pressed() && !okWasDown) suppressOk = wakeUpScreen();
+    okWasDown = ok.pressed();
+    if (action != OkButtonGesture::Action::None && !suppressOk && !wakeUpScreen()) {
+        AnyKeyPress = true;
+        if (action == OkButtonGesture::Action::Back) EscPress = true;
+        else SelPress = true;
+    }
+    if (!ok.pressed()) suppressOk = false;
 
     bool _up  = digitalRead(UP_BTN)  == BTN_ACT;
     bool _dn  = digitalRead(DW_BTN)  == BTN_ACT;
     bool _l   = digitalRead(L_BTN)   == BTN_ACT;
     bool _r   = digitalRead(R_BTN)   == BTN_ACT;
-    bool _sel = digitalRead(SEL_BTN) == BTN_ACT;
     bool _esc = digitalRead(ESC_BTN) == BTN_ACT;
 
-    if (!(_up || _dn || _l || _r || _sel || _esc)) return;
+    if (!(_up || _dn || _l || _r || _esc)) return;
+    if (now - tm < 150 && !LongPress) return;
 
-    tm = millis();
+    tm = now;
     if (wakeUpScreen()) return;
 
     AnyKeyPress = true;
@@ -79,7 +94,6 @@ void InputHandler(void) {
     if (_dn)  { DownPress = true; NextPagePress = true; }
     if (_l)   { PrevPress = true; }
     if (_r)   { NextPress = true; }
-    if (_sel) { SelPress  = true; }
     if (_esc) { EscPress  = true; }
 }
 

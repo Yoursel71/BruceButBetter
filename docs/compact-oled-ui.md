@@ -3,6 +3,11 @@
 ESP32-S3 N16R8 üzerindeki SH1106 ekran, `UI_COMPACT=1` ile kendi yerleşimini kullanır.
 Hedef PlatformIO ortamı `esp32-s3-devkitc-1-psram`dır.
 
+GPIO40 üzerindeki OK tuşu kısa basılıp bırakılınca seçer. 800 ms basılı tutulunca
+bir kez ESC / geri gönderir; bırakırken ayrıca seçim yapılmaz. Fiziksel BACK
+tuşu GPIO41 üzerinde kullanılmaya devam eder. Ekranı uyandıran ilk OK hareketi
+tüketilir; yanlışlıkla bir menü açmaz. OK girişine 25 ms debounce uygulanır.
+
 - Ana menüde 18 menü türü için doğrudan 24×24 piksel hücreye çizilen ikonlar bulunur.
   Her menü sınıfı `compactIcon()` ile kendi simgesini seçer; isim değişiklikleri simgeyi etkilemez.
 - Durum çubuğu tek satırdır. `S`: SD, `W`: Wi-Fi, `@`: Web UI, `B`: Bluetooth,
