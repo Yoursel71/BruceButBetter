@@ -7,6 +7,7 @@
 #include <JPEGDecoder.h>
 #include <interface.h> //for charging ischarging to print charging indicator
 #include <memory>
+#include <new>
 
 #if UI_COMPACT
 // Compact list box (128x64): starts right under the status bar divider, one 8px text row
@@ -205,6 +206,34 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     tft.fillRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
 #endif
     tft.setTextColor(fgcolor, bgcolor);
+#if UI_COMPACT
+    // FM == FP here, so the size test above never picks the two-line layout.
+    // Choose by length instead: up to two rows inside the 26 px box.
+    (void)size;
+    tft.setTextSize(1);
+    const int boxChars = (tftWidth - 24) / LW;
+    const int textLen = static_cast<int>(text.length());
+    if (textLen <= boxChars) {
+        tft.drawCentreString(text, tftWidth / 2, tftHeight / 2 - 4);
+    } else {
+        // Split at the space closest to the middle, if there is one.
+        int cut = textLen / 2;
+        const int spaceBefore = text.lastIndexOf(' ', cut);
+        const int spaceAfter = text.indexOf(' ', cut);
+        if (spaceBefore > 0 && (spaceAfter < 0 || cut - spaceBefore <= spaceAfter - cut)) cut = spaceBefore;
+        else if (spaceAfter > 0) cut = spaceAfter;
+        String first = text.substring(0, cut);
+        String second = text.substring(cut);
+        first.trim();
+        second.trim();
+        if (static_cast<int>(first.length()) > boxChars) first = first.substring(0, boxChars);
+        if (static_cast<int>(second.length()) > boxChars)
+            second = second.substring(0, boxChars - 3) + "...";
+        tft.drawCentreString(first, tftWidth / 2, tftHeight / 2 - 9);
+        tft.drawCentreString(second, tftWidth / 2, tftHeight / 2 + 1);
+    }
+    return;
+#endif
     if (size == FM) {
         tft.setTextSize(FM);
         tft.drawCentreString(text, tftWidth / 2, tftHeight / 2 - 8);
@@ -309,6 +338,15 @@ int8_t displayMessage(
     int8_t totalButtons = (leftButton ? 1 : 0) + (centerButton ? 1 : 0) + (rightButton ? 1 : 0);
     int8_t selected = 0; // Start at first available button
     bool redraw = true;
+
+    if (totalButtons == 0) {
+        // No buttons: the selection math below would divide by zero. Wait for any key.
+        while (!check(AnyKeyPress)) delay(10);
+#ifdef HAS_SCREEN
+        tft.setTextDatum(oldTextDatum);
+#endif
+        return -1;
+    }
 
     while (true) {
         if (check(PrevPress) || check(EscPress)) {
@@ -1528,20 +1566,19 @@ bool showJpeg(FS &fs, String filename, int x, int y, bool center) {
 
     const size_t data_size = picture.size();
 
-    // Alloc memory into heap
-    uint8_t *data_array = new uint8_t[data_size];
+    // Alloc memory into heap (plain new aborts on failure instead of returning nullptr)
+    uint8_t *data_array = new (std::nothrow) uint8_t[data_size];
     if (data_array == nullptr) {
         // Fail allocating memory
         picture.close();
-        delete[] data_array;
         return false;
     }
 
     uint8_t data;
-    int i = 0;
+    size_t i = 0;
     byte line_len = 0;
 
-    while (picture.available()) {
+    while (picture.available() && i < data_size) {
         data = picture.read();
         data_array[i] = data;
         i++;
@@ -1592,7 +1629,7 @@ bool showJpeg(FS &fs, String filename, int x, int y, bool center) {
     Serial.println("=====================================");
 
     delete[] data_array; // free heap before leaving
-    return true;
+    return decoded;      // a file that could not be decoded is not reported as drawn
 }
 
 bool showJpeg(const uint8_t *data_array, size_t data_size, int x, int y, bool center) {
@@ -1611,7 +1648,7 @@ bool showJpeg(const uint8_t *data_array, size_t data_size, int x, int y, bool ce
         jpegRender(x, y);
     }
 
-    return true;
+    return decoded;
 }
 
 #if !defined(LITE_VERSION)
@@ -1622,7 +1659,8 @@ bool showJpeg(const uint8_t *data_array, size_t data_size, int x, int y, bool ce
 //  https://github.com/bitbank2/AnimatedGIF/blob/master/examples/best_practices_example/best_practices_example.ino
 // ####################################################################################################
 
-Gif::Gif() : gifPosition(0, 0) {}
+// gif must start as nullptr: the destructor deletes it when openGIF() returned early.
+Gif::Gif() : gif(nullptr), gifPosition(0, 0) {}
 
 Gif::~Gif() {
     if (gif != nullptr) {
@@ -1644,12 +1682,15 @@ void *Gif::openFile(const char *fname, int32_t *pSize) {
         else if (LittleFS.exists(fname)) GifFile = LittleFS.open(fname);
     }
 
-    File *FSGifFile = new File(GifFile);
+    if (!GifFile) return NULL; // file missing or could not be opened
+
+    File *FSGifFile = new (std::nothrow) File(GifFile);
 
     if (FSGifFile) {
         *pSize = FSGifFile->size();
         return (void *)FSGifFile;
     }
+    GifFile.close();
     return NULL;
 }
 
@@ -1967,11 +2008,20 @@ bool drawBmp(FS &fs, String filename, int x, int y, bool center) {
             bmpFS.seek(seekOffset);
 
             uint16_t padding = (4 - ((w * 3) & 3)) & 3;
-            uint8_t lineBuffer[w * 3 + padding];
+            // Row buffer on the heap: a wide BMP in a stack array could overflow the task stack.
+            const size_t rowBytes = static_cast<size_t>(w) * 3 + padding;
+            std::unique_ptr<uint8_t[]> rowBuffer(new (std::nothrow) uint8_t[rowBytes]);
+            if (!rowBuffer) {
+                tft.setSwapBytes(oldSwapBytes);
+                Serial.println("BMP: not enough memory for one row");
+                bmpFS.close();
+                return false;
+            }
+            uint8_t *lineBuffer = rowBuffer.get();
 
             for (row = 0; row < h; row++) {
 
-                bmpFS.read(lineBuffer, sizeof(lineBuffer));
+                bmpFS.read(lineBuffer, rowBytes);
                 uint8_t *bptr = lineBuffer;
                 uint16_t *tptr = (uint16_t *)lineBuffer;
                 // Convert 24 to 16-bit colours
@@ -2201,6 +2251,10 @@ bool drawPNG(FS &fs, String filename, int x, int y, bool center) {
         if (center) {
             xpos = x + (tftWidth - png->getWidth()) / 2;
             ypos = y + (tftHeight - png->getHeight()) / 2;
+        } else {
+            // Without this the image is drawn where the previous PNG was.
+            xpos = x;
+            ypos = y;
         }
 
         if (png->getWidth() > MAX_IMAGE_WIDTH) {

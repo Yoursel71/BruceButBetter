@@ -12,6 +12,19 @@ tüketilir; yanlışlıkla bir menü açmaz. OK girişine 25 ms debounce uygulan
 tutulur; birinci radyo başlatılırken ikinci radyo tekrar seçimsiz bırakılır.
 GPIO7'deki ikinci CSN'nin boşta LOW kalması, ilk NRF24 başlatmasını bozabiliyordu.
 
+Derin uykudan UP (GPIO15) ile uyanılır; OK (GPIO40) RTC GPIO olmadığı için
+uyandırma kaynağı olamaz. OK+BACK üç saniye tutulunca cihaz uyur. Yalnız beş
+tuş bağlıysa ayrı BACK gerektiren bu kısayol kullanılamaz. Uykudan sonra UP
+yeniden dijital girişe alınır. OLED dimmer ve buzzer davranışı değiştirilmemiştir.
+
+Uzun durum mesajları iki satıra bölünür. Menü gizleme listesi öğeleri açıp
+kapatır, BACK ile kapanır ve Config menüsünü gizlemez. Navigator kayıtları
+halka tampon sırasıyla gönderilir; kayan metin alt satırların kaydını silmez.
+Görsel yuvası dolduğunda kayıt atlanır, günlük tamponları yeniden kullanılır.
+Bozuk/açılamayan görseller, bellek ayırma hataları ve düğmesiz mesajlar
+korumalıdır. Web UI dosya açmayı sınırlı sayıda dener; şifreli yüklemede
+yalnız tek parça kabul edilir ve gelen veri uzunluğu kadar kopyalanır.
+
 - Ana menüde 18 menü türü için doğrudan 24×24 piksel hücreye çizilen ikonlar bulunur.
   Her menü sınıfı `compactIcon()` ile kendi simgesini seçer; isim değişiklikleri simgeyi etkilemez.
 - Durum çubuğu tek satırdır. `S`: SD, `W`: Wi-Fi, `@`: Web UI, `B`: Bluetooth,

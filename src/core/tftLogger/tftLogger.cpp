@@ -47,9 +47,10 @@ void tft_logger::setLogging(bool _log) {
     if (_log) {
         size_t logBytes = sizeof(tftLog) * MAX_LOG_ENTRIES;
         size_t imageBytes = MAX_LOG_IMAGES * MAX_LOG_IMG_PATH;
+        // Reuse buffers that already exist; allocating again on every call leaked them.
         if (psramFound()) {
-            log = static_cast<tftLog *>(ps_malloc(logBytes));
-            images = static_cast<char (*)[MAX_LOG_IMG_PATH]>(ps_malloc(imageBytes));
+            if (!log) log = static_cast<tftLog *>(ps_malloc(logBytes));
+            if (!images) images = static_cast<char (*)[MAX_LOG_IMG_PATH]>(ps_malloc(imageBytes));
         }
         if (!log) log = static_cast<tftLog *>(malloc(logBytes));
         if (!images) images = static_cast<char (*)[MAX_LOG_IMG_PATH]>(malloc(imageBytes));
@@ -76,6 +77,7 @@ void tft_logger::setLogging(bool _log) {
     logging = _logging = _log;
     logWriteIndex = 0;
     if (log) memset(log, 0, sizeof(tftLog) * MAX_LOG_ENTRIES);
+    if (images) memset(images, 0, MAX_LOG_IMAGES * MAX_LOG_IMG_PATH);
     logCount = 0;
 };
 void tft_logger::asyncSerialTaskFunc(void *pv) {
@@ -86,9 +88,7 @@ void tft_logger::asyncSerialTaskFunc(void *pv) {
             uint8_t *entry = item.data;
             uint8_t fn = entry[2];
             if (fn == DRAWIMAGE) {
-                if (!logger->images) {
-                    uint8_t size = entry[1];
-                    serialDevice->write(entry, size);
+                if (!logger->images || entry[12] >= MAX_LOG_IMAGES) {
                     continue;
                 }
                 uint8_t imageSlot = entry[12];
@@ -166,7 +166,11 @@ void tft_logger::getBinLog(uint8_t *outBuffer, size_t &outSize) {
     outSize += pos;
 
     if (!log) return;
-    for (int i = 0; i < logCount; i++) {
+    // The log is a ring buffer. Once it has wrapped, the oldest entry is at logWriteIndex;
+    // replaying in array order would draw newer commands before older ones.
+    const int first = logCount < MAX_LOG_ENTRIES ? 0 : logWriteIndex;
+    for (int k = 0; k < logCount; k++) {
+        const int i = (first + k) % MAX_LOG_ENTRIES;
         if (log[i].data[0] != LOG_PACKET_HEADER) continue;
         uint8_t *entry = log[i].data;
         uint8_t fn = entry[2];
@@ -175,9 +179,12 @@ void tft_logger::getBinLog(uint8_t *outBuffer, size_t &outSize) {
             if (!images) continue;
             uint8_t imageSlot = entry[12]; // AA SS FN XX XX YY YY Ce Ce Ms Ms FS SLOT
                                            // 0  1  2  3  4  5  6  7  8  9  10 11 12
+            if (imageSlot >= MAX_LOG_IMAGES) continue;
             const char *imgPath = images[imageSlot];
             size_t baseLen = 12; // AA SS FN XX XX YY YY Ce Ce Ms Ms FS + PATH
             size_t imgLen = strlen(imgPath);
+            // The packet size is one byte; keep the packet within one log entry like the serial path.
+            if (imgLen > MAX_LOG_SIZE - baseLen) imgLen = MAX_LOG_SIZE - baseLen;
             if (outSize + baseLen + imgLen > MAX_LOG_SIZE * MAX_LOG_ENTRIES) continue;
 
             memcpy(outBuffer + outSize, entry, baseLen);
@@ -264,6 +271,7 @@ void tft_logger::fillScreen(int32_t color) {
     }
     if (isSleeping) return;
     BRUCE_TFT_DRIVER::fillScreen(color);
+    restoreLogger(); // checkAndLog() paused logging; without this the next draw call was not logged
 }
 
 void tft_logger::imageToBin(uint8_t fs, String file, int x, int y, bool center, int Ms) {
@@ -290,6 +298,9 @@ void tft_logger::imageToBin(uint8_t fs, String file, int x, int y, bool center, 
             }
         }
     }
+    // All image slots are taken (a second image before the next fillScreen):
+    // images[0xFF] would read far outside the buffer, so skip logging this image.
+    if (imageSlot >= MAX_LOG_IMAGES) return;
 
     // Use image path as identifier in log.data
     uint8_t buffer[MAX_LOG_SIZE];
@@ -445,7 +456,19 @@ void tft_logger::drawFastHLine(int32_t x, int32_t y, int32_t w, int32_t fg) {
 void tft_logger::log_drawString(String s, tftFuncs fn, int32_t x, int32_t y) {
     if (!logging) return;
     if (!log) return;
-    if (removeLogEntriesInsideRect(x, y, s.length() * LW * currentTextSize(), s.length() * LH * currentTextSize())) {
+    // The text covers one row: len * LW wide and LH high. The old height (len * LH) also
+    // removed everything drawn below a long string, e.g. the rows under a scrolling label.
+    // Centre/right strings are anchored at x, so their box starts to the left of it.
+    const int textW = static_cast<int>(s.length()) * LW * currentTextSize();
+    const int textH = LH * currentTextSize();
+    int textX = x;
+    int boxW = textW;
+    if (fn == DRAWCENTRESTRING) textX -= textW / 2;
+    else if (fn == DRAWRIGHTSTRING) {
+        textX -= textW;
+        boxW += 1; // include the anchor column, where older right-aligned entries are stored
+    }
+    if (removeLogEntriesInsideRect(textX, y, boxW, textH)) {
         // debug purpose
         // Serial.printf("Something was removed while processing: %s\n", s.c_str());
     }
@@ -474,10 +497,15 @@ void tft_logger::log_drawString(String s, tftFuncs fn, int32_t x, int32_t y) {
     logging = false;
 }
 
+// log_drawString() pauses logging; the early return while sleeping must restore it too,
+// otherwise nothing is logged for the WebUI Navigator until the screen wakes up.
 int16_t tft_logger::drawString(const String &string, int32_t x, int32_t y, uint8_t font) {
     log_drawString(string, DRAWSTRING, x, y);
     int16_t r;
-    if (isSleeping) return string.length();
+    if (isSleeping) {
+        restoreLogger();
+        return string.length();
+    }
     r = BRUCE_TFT_DRIVER::drawString(string, x, y, font);
     restoreLogger();
     return r;
@@ -486,7 +514,10 @@ int16_t tft_logger::drawString(const String &string, int32_t x, int32_t y, uint8
 int16_t tft_logger::drawCentreString(const String &string, int32_t x, int32_t y, uint8_t font) {
     log_drawString(string, DRAWCENTRESTRING, x, y);
     int16_t r;
-    if (isSleeping) return string.length();
+    if (isSleeping) {
+        restoreLogger();
+        return string.length();
+    }
     r = BRUCE_TFT_DRIVER::drawCentreString(string, x, y, font);
     restoreLogger();
     return r;
@@ -495,7 +526,10 @@ int16_t tft_logger::drawCentreString(const String &string, int32_t x, int32_t y,
 int16_t tft_logger::drawRightString(const String &string, int32_t x, int32_t y, uint8_t font) {
     log_drawString(string, DRAWRIGHTSTRING, x, y);
     int16_t r;
-    if (isSleeping) return string.length();
+    if (isSleeping) {
+        restoreLogger();
+        return string.length();
+    }
     r = BRUCE_TFT_DRIVER::drawRightString(string, x, y, font);
     restoreLogger();
     return r;
@@ -505,9 +539,10 @@ void tft_logger::log_print(String s) {
     if (!logging) return;
     if (!log) return;
 
+    // One text row high (the old height, len * LH, wiped entries far below the text).
     removeLogEntriesInsideRect(
         getCursorX() - 1, getCursorY() - 1, s.length() * LW * currentTextSize() + 2,
-        s.length() * LH * currentTextSize() + 2
+        LH * currentTextSize() + 2
     );
 
     uint8_t buffer[MAX_LOG_SIZE];

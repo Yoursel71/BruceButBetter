@@ -43,10 +43,12 @@ String generateToken(int length = 24) {
 void stopWebUi() {
     tft.setLogging(false);
     isWebUIActive = false;
-    server->end();
-    server->~AsyncWebServer();
-    free(server);
-    server = nullptr;
+    if (server) { // may be called when the server was never started
+        server->end();
+        server->~AsyncWebServer();
+        free(server);
+        server = nullptr;
+    }
     if (mdnsRunning) {
         MDNS.end();
         mdnsRunning = false;
@@ -231,27 +233,46 @@ void handleUpload(
             String fullPath = uploadFolder + "/" + relativePath;
             String dirPath = fullPath.substring(0, fullPath.lastIndexOf("/"));
             if (dirPath.length() > 0) { createDirRecursive(dirPath, _webFS); }
-        RETRY:
+            // A few tries only: retrying forever blocked the web server task (watchdog reset).
             request->_tempFile = _webFS.open(uploadFolder + "/" + filename, "w");
+            for (int attempt = 1; !request->_tempFile && attempt < 3; ++attempt) {
+                vTaskDelay(pdMS_TO_TICKS(20));
+                request->_tempFile = _webFS.open(uploadFolder + "/" + filename, "w");
+            }
             if (!request->_tempFile) {
-                // Serial.println("Failed to open file for writing: " + uploadFolder + "/" + filename);
-                goto RETRY;
+                log_e("Upload: cannot open %s for writing", (uploadFolder + "/" + filename).c_str());
             }
         }
 
         if (len) {
             if (request->hasArg("password")) {
-                // encryption requested
-                static int chunck_no = 0;
-                if (chunck_no != 0) {
-                    // TODO: handle multiple chunks
-                    request->send(404, "text/html", "file is too big");
+                // Encryption needs the whole file in one chunk; bigger uploads are refused.
+                // (The old static chunk counter was never reset, so every later encrypted
+                // upload failed after the first one.)
+                if (index != 0 || !final) {
+                    if (index == 0) {
+                        if (request->_tempFile) request->_tempFile.close();
+                        _webFS.remove(uploadFolder + "/" + filename);
+                        request->send(404, "text/html", "file is too big");
+                    }
                     return;
-                } else chunck_no += 1;
+                }
                 String enc_password = request->arg("password");
-                String plaintext = String((char *)data).substring(0, len);
+                // data is not NUL-terminated: copy exactly len bytes.
+                String plaintext;
+                if (!plaintext.concat(reinterpret_cast<const char *>(data), len)) {
+                    if (request->_tempFile) request->_tempFile.close();
+                    _webFS.remove(uploadFolder + "/" + filename);
+                    request->send(500, "text/plain", "Not enough memory for encryption");
+                    return;
+                }
                 String cyphertxt = encryptString(plaintext, enc_password);
-                if (cyphertxt == "") { return; }
+                if (cyphertxt == "") {
+                    // Encryption failed: do not leave the file open or an empty .enc behind.
+                    if (request->_tempFile) request->_tempFile.close();
+                    _webFS.remove(uploadFolder + "/" + filename);
+                    return;
+                }
                 if (request->_tempFile)
                     request->_tempFile.write((const uint8_t *)cyphertxt.c_str(), cyphertxt.length());
             } else {
@@ -559,11 +580,14 @@ void configureWebServer() {
                 if (cmnd.startsWith("nav next")) var = &NextPress;
                 if (cmnd.startsWith("nav prev")) var = &PrevPress;
                 request->send(200, "text/plain", "command " + cmnd + " success");
-                int time;
-                if (cmnd.endsWith("0")) time = cmnd.substring(cmnd.lastIndexOf(' ')).toInt();
-                else time = 10;
-                auto tmp = millis() + time;
-                while (tmp > millis()) {
+                // Optional hold time in ms as the last word ("nav sel 1500"). The old check only
+                // read it when the command ended in "0".
+                int time = cmnd.substring(cmnd.lastIndexOf(' ') + 1).toInt();
+                if (time <= 0) time = 10;
+                // This loop blocks the web server task; keep it below the task watchdog timeout.
+                if (time > 3000) time = 3000;
+                const uint32_t start = millis();
+                while (millis() - start < static_cast<uint32_t>(time)) { // safe across millis() rollover
                     AnyKeyPress = true;
                     SerialCmdPress = true;
                     *var = true;
@@ -774,6 +798,10 @@ void startWebUi(bool mode_ap) {
         if (psramFound()) server = (AsyncWebServer *)ps_malloc(sizeof(AsyncWebServer));
         else server = (AsyncWebServer *)malloc(sizeof(AsyncWebServer));
 
+        if (!server) {
+            log_e("Web UI: not enough memory for the server");
+            return;
+        }
         new (server) AsyncWebServer(default_webserverporthttp);
 
         configureWebServer();

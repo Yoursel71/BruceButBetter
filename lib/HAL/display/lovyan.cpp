@@ -6,11 +6,13 @@
 #include "freertos/queue.h"
 #include "freertos/semphr.h"
 #include "freertos/task.h"
-// static SemaphoreHandle_t tftMutex;
- // #define RUN_ON_MUTEX(fn) \
-//     xSemaphoreTakeRecursive(tftMutex, portMAX_DELAY); \
-//     fn; \
- xSemaphoreGiveRecursive(tftMutex);
+/* Disabled mutex version, kept for reference:
+static SemaphoreHandle_t tftMutex;
+#define RUN_ON_MUTEX(fn)                               \
+    xSemaphoreTakeRecursive(tftMutex, portMAX_DELAY); \
+    fn;                                               \
+    xSemaphoreGiveRecursive(tftMutex);
+*/
 
 #define RUN_ON_MUTEX(fn) fn;
 
@@ -561,6 +563,7 @@ void tft_sprite::fillRectHGradient(
 void tft_sprite::fillRectVGradient(
     int16_t x, int16_t y, int16_t w, int16_t h, uint32_t color1, uint32_t color2
 ) {
+    (void)color2;
     lgfx::LGFX_Sprite::fillRect(x, y, w, h, (uint16_t)color1);
 }
 

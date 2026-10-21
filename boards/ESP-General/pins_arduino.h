@@ -35,27 +35,52 @@ static const uint8_t MISO = SPI_MISO_PIN;
 static const uint8_t SCK  = SPI_SCK_PIN;
 static const uint8_t SS   = SPI_SS_PIN;
 
+// ESP-General.ini also passes the macros below with -D (same pins, different text).
+// #ifndef keeps a single definition, so the compiler no longer warns "redefined".
+
 // ── CC1101 ───────────────────────────────────────────────────────────────────
+#ifndef USE_CC1101_VIA_SPI
 #define USE_CC1101_VIA_SPI
+#endif
 #define CC1101_GDO0_PIN  9
 #define CC1101_SS_PIN    10
+#ifndef CC1101_MOSI_PIN
 #define CC1101_MOSI_PIN  SPI_MOSI_PIN
+#endif
+#ifndef CC1101_SCK_PIN
 #define CC1101_SCK_PIN   SPI_SCK_PIN
+#endif
+#ifndef CC1101_MISO_PIN
 #define CC1101_MISO_PIN  SPI_MISO_PIN
+#endif
 
 // ── MicroSD ──────────────────────────────────────────────────────────────────
 #define SDCARD_CS    14
+#ifndef SDCARD_MOSI
 #define SDCARD_MOSI  SPI_MOSI_PIN
+#endif
+#ifndef SDCARD_SCK
 #define SDCARD_SCK   SPI_SCK_PIN
+#endif
+#ifndef SDCARD_MISO
 #define SDCARD_MISO  SPI_MISO_PIN
+#endif
 
 // ── NRF24L01 #1 ──────────────────────────────────────────────────────────────
+#ifndef USE_NRF24_VIA_SPI
 #define USE_NRF24_VIA_SPI
+#endif
 #define NRF24_CE_PIN   4
 #define NRF24_SS_PIN   5
+#ifndef NRF24_MOSI_PIN
 #define NRF24_MOSI_PIN SPI_MOSI_PIN
+#endif
+#ifndef NRF24_SCK_PIN
 #define NRF24_SCK_PIN  SPI_SCK_PIN
+#endif
+#ifndef NRF24_MISO_PIN
 #define NRF24_MISO_PIN SPI_MISO_PIN
+#endif
 
 // ── NRF24L01 #2 (MouseJack inject - not yet used) ───────────────────────────
 #define NRF24_2_CE_PIN   6

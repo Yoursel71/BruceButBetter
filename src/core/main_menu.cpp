@@ -1,6 +1,7 @@
 #include "main_menu.h"
 #include "display.h"
 #include "utils.h"
+#include <algorithm>
 #include <globals.h>
 
 MainMenu::MainMenu() {
@@ -93,17 +94,33 @@ void MainMenu::begin(void) {
 
 void MainMenu::hideAppsMenu() {
     auto items = this->getItems();
+    int chosen = -1;
 RESTART: // using gotos to avoid stackoverflow after many choices
     options.clear();
     for (auto item : items) {
+        // Config holds this menu; hiding it would leave no way to show the menus again.
+        if (item == &configMenu) continue;
         String label = item->getName();
         std::vector<String> l = bruceConfig.disabledMenus;
         bool enabled = find(l.begin(), l.end(), label) == l.end();
-        options.push_back({label, [this, label]() { bruceConfig.addDisabledMenu(label); }, enabled});
+        // Selecting an item toggles it: a visible menu is hidden, a hidden one is shown again.
+        options.push_back(
+            {label,
+             [label, enabled]() {
+                 if (enabled) {
+                     bruceConfig.addDisabledMenu(label);
+                 } else {
+                     auto &d = bruceConfig.disabledMenus;
+                     d.erase(std::remove(d.begin(), d.end(), label), d.end());
+                 }
+             },
+             enabled}
+        );
     }
     options.push_back({"Show All", [=]() { bruceConfig.disabledMenus.clear(); }, true});
     addOptionToMainMenu();
-    loopOptions(options);
+    chosen = loopOptions(options);
     bruceConfig.saveFile();
-    if (!returnToMenu) goto RESTART;
+    // BACK returns -1: leave the menu instead of drawing it again.
+    if (chosen >= 0 && !returnToMenu) goto RESTART;
 }
