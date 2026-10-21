@@ -23,6 +23,7 @@ on:
           - "m5stack-core4mb"
           - "m5stack-cores3"
           - "esp32-s3-devkitc-1"
+          - "esp32-s3-devkitc-1-psram"
           - "esp32-c5"
           - "esp32-c5-tft"
           - "CYD-2432S028"
