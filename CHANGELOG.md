@@ -6,12 +6,29 @@ All notable changes to BruceButBetter. Format loosely follows
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-10-22
+
 ### Fixed
+- **ESP-General SH1106 display configuration** — correct 128×64 geometry, panel offsets,
+  rotation and monochrome colors for the ESP32-S3 N16R8 build.
+- **Shared-SPI NRF24 initialization** — deselect both radios and hold CE low at startup,
+  avoiding intermittent detection failures caused by the second chip-select line.
+- **Compact UI and Navigator stability** — wrap long status messages, preserve neighboring
+  text rows, replay the drawing log in chronological order, reuse logging buffers and guard
+  image-slot bounds and allocation failures.
+- **Menu visibility and deep sleep** — hidden apps can be shown again, BACK exits the visibility
+  menu, Config cannot be hidden, and UP (GPIO15) wakes ESP-General from deep sleep.
+- **Image and Web UI error handling** — guard empty-button dialogs, failed image loads,
+  oversized BMP row buffers, encrypted upload lengths and bounded file-open retries.
 - **Host Info port scan is now cancellable.** ESC is polled during each port's wait, not only
   between ports, and the WiFi connect is bounded by the scan timeout, so a filtered port can no
   longer block the loop and ESC quits the scan promptly.
 
 ### Added
+- **Native 128×64 OLED interface** — 18 compact icons, a four-row scrolling list, readable
+  dialogs, progress bars and status indicators; Web UI runs alongside the physical menu.
+- **Short OK selects; long OK goes back** — 25 ms debounce and an 800 ms hold threshold on
+  ESP-General, without sending a selection before the back action.
 - **Capture the 2.4 GHz band to CSV.** New NRF24 menu entry *Spectrum → CSV* samples the band and
   writes `channel,freq_mhz,activity` for all 80 channels to `/BruceRF/nrf_spectrum_<ms>.csv`, reporting
   the busiest channel. The 2.4 GHz counterpart of the sub-GHz capture.
@@ -79,4 +96,8 @@ First public release of the DIY ESP32-S3 N16R8 build.
 - `esp32-c5` variants need the RISC-V toolchain; `arduino-nesso-n1` rejects the MSYS build env —
   both build from source rather than shipping a prebuilt bin.
 
+[Unreleased]: https://github.com/Yoursel71/BruceButBetter/compare/v1.3.0...master
+[1.3.0]: https://github.com/Yoursel71/BruceButBetter/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/Yoursel71/BruceButBetter/compare/v1.1.0...v1.2.0
+[1.1.0]: https://github.com/Yoursel71/BruceButBetter/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/Yoursel71/BruceButBetter/releases/tag/v1.0.0
