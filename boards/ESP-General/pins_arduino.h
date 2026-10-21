@@ -100,8 +100,8 @@ static const uint8_t SS   = SPI_SS_PIN;
 
 // ── Font sizes (tuned for the small OLED) ──────────────────────────────────────
 #define FP 1
-#define FM 2
-#define FG 3
+#define FM 1
+#define FG 2
 
 // ── Device name ─────────────────────────────────────────────────────────────────
 #define DEVICE_NAME "\"BruceButBetter\""
