@@ -62,6 +62,15 @@ bool nrf_start(NRF24_MODE mode) {
     digitalWrite(bruceConfigPins.NRF24_bus.cs, HIGH);
     pinMode(bruceConfigPins.NRF24_bus.io0, OUTPUT);
     digitalWrite(bruceConfigPins.NRF24_bus.io0, LOW);
+#ifdef NRF24_2_SS_PIN
+    // Deselect the other radio before any SPI traffic, including its first begin().
+    pinMode(NRF24_2_SS_PIN, OUTPUT);
+    digitalWrite(NRF24_2_SS_PIN, HIGH);
+#endif
+#ifdef NRF24_2_CE_PIN
+    pinMode(NRF24_2_CE_PIN, OUTPUT);
+    digitalWrite(NRF24_2_CE_PIN, LOW);
+#endif
 
     if (bruceConfigPins.NRF24_bus.mosi == (gpio_num_t)TFT_MOSI &&
         bruceConfigPins.NRF24_bus.mosi != GPIO_NUM_NC) { // (T_EMBED), CORE2 and others
@@ -96,8 +105,10 @@ bool nrf_start(NRF24_MODE mode) {
             rf24_gpio_pin_t(bruceConfigPins.NRF24_bus.io0),
             rf24_gpio_pin_t(bruceConfigPins.NRF24_bus.cs)
         )) {
+        Serial.printf("[NRF1] Radio1 OK (CE=%d CSN=%d)\n", bruceConfigPins.NRF24_bus.io0, bruceConfigPins.NRF24_bus.cs);
         result = true;
     } else {
+        Serial.printf("[NRF1] Radio1 NOT found (CE=%d CSN=%d)\n", bruceConfigPins.NRF24_bus.io0, bruceConfigPins.NRF24_bus.cs);
         return false;
     }
     return result;

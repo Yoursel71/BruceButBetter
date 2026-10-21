@@ -20,6 +20,17 @@ void _setup_gpio() {
     digitalWrite(CC1101_SS_PIN, HIGH);
     pinMode(NRF24_SS_PIN, OUTPUT);
     digitalWrite(NRF24_SS_PIN, HIGH);
+#ifdef NRF24_2_SS_PIN
+    // Radio 2 shares MISO: a floating/LOW CSN can corrupt radio 1's first probe.
+    pinMode(NRF24_2_SS_PIN, OUTPUT);
+    digitalWrite(NRF24_2_SS_PIN, HIGH);
+#endif
+    pinMode(NRF24_CE_PIN, OUTPUT);
+    digitalWrite(NRF24_CE_PIN, LOW);
+#ifdef NRF24_2_CE_PIN
+    pinMode(NRF24_2_CE_PIN, OUTPUT);
+    digitalWrite(NRF24_2_CE_PIN, LOW);
+#endif
     pinMode(SDCARD_CS, OUTPUT);
     digitalWrite(SDCARD_CS, HIGH);
 

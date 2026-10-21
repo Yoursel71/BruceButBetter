@@ -8,6 +8,10 @@ bir kez ESC / geri gönderir; bırakırken ayrıca seçim yapılmaz. Fiziksel BA
 tuşu GPIO41 üzerinde kullanılmaya devam eder. Ekranı uyandıran ilk OK hareketi
 tüketilir; yanlışlıkla bir menü açmaz. OK girişine 25 ms debounce uygulanır.
 
+İki NRF24 aynı SPI hattındadır. Açılışta her iki CSN HIGH, her iki CE LOW
+tutulur; birinci radyo başlatılırken ikinci radyo tekrar seçimsiz bırakılır.
+GPIO7'deki ikinci CSN'nin boşta LOW kalması, ilk NRF24 başlatmasını bozabiliyordu.
+
 - Ana menüde 18 menü türü için doğrudan 24×24 piksel hücreye çizilen ikonlar bulunur.
   Her menü sınıfı `compactIcon()` ile kendi simgesini seçer; isim değişiklikleri simgeyi etkilemez.
 - Durum çubuğu tek satırdır. `S`: SD, `W`: Wi-Fi, `@`: Web UI, `B`: Bluetooth,
