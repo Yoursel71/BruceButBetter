@@ -9,6 +9,9 @@ public:
 
     void optionsMenu(void);
     void drawIcon(float scale);
+#if defined(UI_COMPACT) && UI_COMPACT
+    CompactMenuIcon compactIcon() const override { return CompactMenuIcon::Bluetooth; }
+#endif
     bool hasTheme() { return bruceConfig.theme.ble; }
     String themePath() { return bruceConfig.theme.paths.ble; }
 

@@ -12,6 +12,9 @@ public:
     void badUsbHidMenu(); // New submenu for BadUSB & HID tools
     void optionsMenu(void);
     void drawIcon(float scale);
+#if defined(UI_COMPACT) && UI_COMPACT
+    CompactMenuIcon compactIcon() const override { return CompactMenuIcon::Tools; }
+#endif
 
     bool hasTheme() { return bruceConfig.theme.others; }
     String themePath() { return bruceConfig.theme.paths.others; }

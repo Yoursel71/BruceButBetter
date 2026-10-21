@@ -8,6 +8,9 @@ public:
     Si5351Menu() : MenuItemInterface("RF Gen") {}
     void optionsMenu(void);
     void drawIcon(float scale);
+#if defined(UI_COMPACT) && UI_COMPACT
+    CompactMenuIcon compactIcon() const override { return CompactMenuIcon::Signal; }
+#endif
     bool hasTheme() { return false; }
     String themePath() { return ""; }
 };

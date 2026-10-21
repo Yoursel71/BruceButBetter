@@ -34,6 +34,14 @@ enum tftFuncs : uint8_t { // DO NOT CHANGE THE ORDER, ADD NEW FUNCTIONS TO THE E
 
     SCREEN_INFO = 99 // 99
 };
+#if defined(UI_COMPACT) && UI_COMPACT
+// Keep the complete native icon, carousel indicators and header in the Navigator snapshot.
+// Allocation still uses psramFound() at runtime and falls back to the normal heap.
+#define MAX_LOG_ENTRIES 64
+#define MAX_LOG_SIZE 128
+#define MAX_LOG_IMAGES 1
+#define MAX_LOG_IMG_PATH 512
+#else
 #if defined(BOARD_HAS_PSRAM)
 #define MAX_LOG_ENTRIES 64
 #define MAX_LOG_SIZE 128
@@ -45,6 +53,7 @@ enum tftFuncs : uint8_t { // DO NOT CHANGE THE ORDER, ADD NEW FUNCTIONS TO THE E
 #define MAX_LOG_IMAGES 1
 #define MAX_LOG_IMG_PATH 256
 #endif
+#endif // UI_COMPACT
 #define LOG_PACKET_HEADER 0xAA
 
 struct tftLog {

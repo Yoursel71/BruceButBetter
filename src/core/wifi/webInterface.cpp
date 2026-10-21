@@ -763,8 +763,12 @@ void startWebUi(bool mode_ap) {
     // configure web server
 
     if (!server) {
+#if UI_COMPACT
+        // The foreground menu owns its options while the WebUI runs in the background.
+#else
         // Clear this vector to free stack memory
         options.clear();
+#endif
 
         Serial.println("Configuring Webserver ...");
         if (psramFound()) server = (AsyncWebServer *)ps_malloc(sizeof(AsyncWebServer));
@@ -776,6 +780,12 @@ void startWebUi(bool mode_ap) {
 
         isWebUIActive = true;
     }
+#if UI_COMPACT
+    if (!tft.getLogging()) tft.setLogging();
+    requestCompactMenuRedraw();
+    String address = WiFi.status() == WL_CONNECTED ? WiFi.localIP().toString() : WiFi.softAPIP().toString();
+    Serial.printf("Web UI: http://%s/\n", address.c_str());
+#else
     tft.setLogging();
     drawWebUiScreen(mode_ap);
 #ifdef HAS_SCREEN // Headless always run in the background!
@@ -798,4 +808,5 @@ void startWebUi(bool mode_ap) {
         if (!keepWifiConnected) { wifiDisconnect(); }
     }
 #endif
+#endif // UI_COMPACT
 }

@@ -42,6 +42,9 @@ struct Opt_Coord {
     uint16_t bgcolor = bruceConfig.bgColor;
 };
 void displayScrollingText(const String &text, Opt_Coord &coord);
+#if UI_COMPACT
+void requestCompactMenuRedraw();
+#endif
 
 #if !defined(LITE_VERSION)
 

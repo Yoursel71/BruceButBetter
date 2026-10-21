@@ -59,9 +59,13 @@ void MainMenu::begin(void) {
                      drawMainBorder(false);
 
                      MenuItemInterface *obj = static_cast<MenuItemInterface *>(menuItem);
+#if defined(UI_COMPACT) && UI_COMPACT
+                     obj->draw();
+#else
                      float scale = float((float)tftWidth / (float)240);
                      if (bruceConfigPins.rotation & 0b01) scale = float((float)tftHeight / (float)135);
                      obj->draw(scale);
+#endif
 #if defined(HAS_TOUCH)
                      TouchFooter();
 #endif
@@ -72,6 +76,13 @@ void MainMenu::begin(void) {
             );
         }
     }
+#if defined(UI_COMPACT) && UI_COMPACT
+    int compactIndex = 0;
+    for (auto *item : _menuItems) {
+        if (find(l.begin(), l.end(), item->getName()) == l.end())
+            item->setCompactPosition(compactIndex++, static_cast<int>(options.size()));
+    }
+#endif
     _currentIndex = loopOptions(options, MENU_TYPE_MAIN, "Main Menu", _currentIndex);
 };
 
