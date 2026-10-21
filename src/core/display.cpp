@@ -8,7 +8,25 @@
 #include <interface.h> //for charging ischarging to print charging indicator
 #include <memory>
 
+#if UI_COMPACT
+// Compact list box (128x64): starts right under the status bar divider, one 8px text row
+// plus a 2px gap per item, ends above the bottom border.
+#define MENU_ROW_H (FM * LH + 2)
+#define MAX_MENU_SIZE (int)((tftHeight - STATUS_BAR_HEIGHT - 7) / MENU_ROW_H)
+#define CMENU_X 8
+#define CMENU_W (tftWidth - 16)
+#define CMENU_Y (STATUS_BAR_HEIGHT - 3)
+#define CMENU_H(rows) (MENU_ROW_H * (rows) + 4)
+// Long-press "exit" ring, kept inside the list box
+#define LP_ARC_Y ((STATUS_BAR_HEIGHT + tftHeight - 10) / 2)
+#define LP_ARC_R 13
+#define LP_ARC_IR 7
+#else
 #define MAX_MENU_SIZE (int)(tftHeight / 25)
+#define LP_ARC_Y (tftHeight / 2)
+#define LP_ARC_R 25
+#define LP_ARC_IR 15
+#endif
 
 // Send the ST7789 into or out of sleep mode
 void panelSleep(bool on) {
@@ -141,7 +159,16 @@ void displayRedStripe(String text, uint16_t fgcolor, uint16_t bgcolor) {
     if (text.length() * LW * FM < (tftWidth - 2 * FM * LW)) size = FM;
     else size = FP;
     tft.drawPixel(0, 0, 0);
+#if defined(TFT_MONOCHROME)
+    // 1-bit screen: a coloured stripe turns solid white and hides the white text on it.
+    // Draw a black box with a white frame instead.
+    fgcolor = TFT_WHITE;
+    bgcolor = TFT_BLACK;
     tft.fillRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
+    tft.drawRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, fgcolor);
+#else
+    tft.fillRoundRect(10, tftHeight / 2 - 13, tftWidth - 20, 26, 7, bgcolor);
+#endif
     tft.setTextColor(fgcolor, bgcolor);
     if (size == FM) {
         tft.setTextSize(FM);
@@ -168,7 +195,11 @@ void drawButton(
         tft.drawRoundRect(x, y, w, h, 5, color);
     }
     tft.setTextColor(inverted ? TFT_BLACK : color);
+#if UI_COMPACT
+    tft.drawString(text, x + w / 2, y + h - 2); // lift the label off the bottom edge of the small button
+#else
     tft.drawString(text, x + w / 2, y + h);
+#endif
 }
 
 int8_t displayMessage(
@@ -185,7 +216,11 @@ int8_t displayMessage(
 
     // Handle newline characters in message
     String msg = String(message);
+#if UI_COMPACT
+    int y = STATUS_BAR_HEIGHT - 2; // text starts under the status bar, buttons sit at the bottom
+#else
     int y = tftHeight / 2 - 20;
+#endif
     int start = 0;
     int end = msg.indexOf('\n');
 
@@ -198,9 +233,23 @@ int8_t displayMessage(
     tft.drawString(msg.substring(start), tftWidth / 2, y);
 
     tft.setTextDatum(BC_DATUM);
+#if UI_COMPACT
+    // One text row per button, three equal buttons inside the screen border (x 7..tftWidth-8)
+    // so message + buttons fit in 64px.
+    int16_t buttonHeight = FM * LH + 4;
+    int16_t buttonY = tftHeight - buttonHeight - 7;
+    int16_t buttonWidth = (tftWidth - 14 - 6) / 3;
+    const int16_t buttonX0 = 7;
+    const int16_t buttonX1 = buttonX0 + buttonWidth + 3;
+    const int16_t buttonX2 = buttonX1 + buttonWidth + 3;
+#else
     int16_t buttonHeight = 20;
     int16_t buttonY = tftHeight - buttonHeight - 5;
     int16_t buttonWidth = tftWidth / 3 - 10;
+    const int16_t buttonX0 = 5;
+    const int16_t buttonX1 = tftWidth / 3 + 5;
+    const int16_t buttonX2 = tftWidth * 2 / 3 + 5;
+#endif
 
     int8_t totalButtons = (leftButton ? 1 : 0) + (centerButton ? 1 : 0) + (rightButton ? 1 : 0);
     int8_t selected = 0; // Start at first available button
@@ -222,13 +271,15 @@ int8_t displayMessage(
 
         if (redraw) {
             if (leftButton) {
-                drawButton(5, buttonY, buttonWidth, buttonHeight, color, leftButton, selected == index);
+                drawButton(
+                    buttonX0, buttonY, buttonWidth, buttonHeight, color, leftButton, selected == index
+                );
                 index++;
             }
 
             if (centerButton) {
                 drawButton(
-                    tftWidth / 3 + 5,
+                    buttonX1,
                     buttonY,
                     buttonWidth,
                     buttonHeight,
@@ -241,7 +292,7 @@ int8_t displayMessage(
 
             if (rightButton) {
                 drawButton(
-                    tftWidth * 2 / 3 + 5,
+                    buttonX2,
                     buttonY,
                     buttonWidth,
                     buttonHeight,
@@ -502,6 +553,9 @@ int loopOptions(
     int devModeCounter = 0;
     static unsigned long _clock_bat_timer = millis();
     if (options.size() > MAX_MENU_SIZE) { menuSize = MAX_MENU_SIZE; }
+#if UI_COMPACT
+    if (index > 0) tft.fillRoundRect(CMENU_X, CMENU_Y, CMENU_W, CMENU_H(menuSize), 5, bruceConfig.bgColor);
+#else
     if (index > 0)
         tft.fillRoundRect(
             tftWidth * 0.10,
@@ -511,6 +565,7 @@ int loopOptions(
             5,
             bruceConfig.bgColor
         );
+#endif
     if (index >= options.size()) index = 0;
     bool firstRender = true;
     static unsigned long menuOpenTs = 0; // timestamp when menu was first rendered
@@ -592,9 +647,9 @@ int loopOptions(
                 if (millis() - _tmp > 200)
                     tft.drawArc(
                         tftWidth / 2,
-                        tftHeight / 2,
-                        25,
-                        15,
+                        LP_ARC_Y,
+                        LP_ARC_R,
+                        LP_ARC_IR,
                         0,
                         360 * (millis() - (_tmp + 200)) / 500,
                         getColorVariation(bruceConfig.priColor),
@@ -603,7 +658,7 @@ int loopOptions(
                 vTaskDelay(10 / portTICK_RATE_MS);
             }
             tft.drawArc(
-                tftWidth / 2, tftHeight / 2, 25, 15, 0, 360, bruceConfig.bgColor, bruceConfig.bgColor
+                tftWidth / 2, LP_ARC_Y, LP_ARC_R, LP_ARC_IR, 0, 360, bruceConfig.bgColor, bruceConfig.bgColor
             );
             LongPress = false;
 #endif
@@ -661,6 +716,22 @@ int loopOptions(
 ** Dependencia: prog_handler =>>    0 - Flash, 1 - LittleFS
 ***************************************************************************************/
 void progressHandler(int progress, size_t total, String message) {
+#if UI_COMPACT
+    // Small screen: message box in the middle, bar under it, above the bottom border.
+    const int32_t barX = 12;
+    const int32_t barY = tftHeight - 17;
+    const int32_t barW = tftWidth - 24;
+    const int32_t barH = 9;
+    int barWidth = map(progress, 0, total, 0, barW - 4);
+    if (barWidth < 3) {
+        tft.fillRect(
+            6, STATUS_BAR_HEIGHT - 3, tftWidth - 12, tftHeight - STATUS_BAR_HEIGHT - 3, bruceConfig.bgColor
+        );
+        displayRedStripe(message, TFT_WHITE, bruceConfig.priColor);
+        tft.drawRect(barX, barY, barW, barH, bruceConfig.priColor);
+    }
+    tft.fillRect(barX + 2, barY + 2, barWidth, barH - 4, bruceConfig.priColor);
+#else
     int barWidth = map(progress, 0, total, 0, tftWidth - 40);
     if (barWidth < 3) {
         tft.fillRect(6, 27, tftWidth - 12, tftHeight - 33, bruceConfig.bgColor);
@@ -668,6 +739,7 @@ void progressHandler(int progress, size_t total, String message) {
         displayRedStripe(message, TFT_WHITE, bruceConfig.priColor);
     }
     tft.fillRect(20, tftHeight - 45, barWidth, 13, bruceConfig.priColor);
+#endif
 }
 
 /***************************************************************************************
@@ -685,6 +757,39 @@ Opt_Coord drawOptions(
     // Uncomment to update the statusBar (causes flickering)
     // drawStatusBar();
 
+#if UI_COMPACT
+    // Compact list: rows are placed explicitly inside a box right under the status bar.
+    const int maxChars = (CMENU_W - 10) / (LW * FM) - 1;
+    tft.drawPixel(0, 0, bruceConfig.bgColor);
+    if (firstRender) {
+        tft.fillRoundRect(CMENU_X, CMENU_Y, CMENU_W, CMENU_H(menuSize), 5, bgcolor);
+        tft.drawRoundRect(CMENU_X, CMENU_Y, CMENU_W, CMENU_H(menuSize), 5, fgcolor);
+    }
+    tft.setTextSize(FM);
+
+    int init = 0;
+    if (index >= MAX_MENU_SIZE) init = index - MAX_MENU_SIZE + 1;
+    int row = 0;
+    for (int i = init; i < (int)options.size() && row < MAX_MENU_SIZE; i++, row++) {
+        if (options[i].selected) tft.setTextColor(selcolor, bgcolor); // if selected, change Text color
+        else tft.setTextColor(fgcolor, bgcolor);
+        if (!options[i].enabled) tft.setTextColor(TFT_DARKGREY, bgcolor);
+
+        const int32_t rowY = CMENU_Y + 3 + row * MENU_ROW_H;
+        String text = "";
+        if (i == index) {
+            text += ">";
+            coord.x = CMENU_X + 5 + FM * LW;
+            coord.y = rowY;
+            coord.size = maxChars;
+            coord.fgcolor = fgcolor;
+            coord.bgcolor = bgcolor;
+        } else text += " ";
+        text += String(options[i].label) + "              ";
+        tft.setCursor(CMENU_X + 5, rowY);
+        tft.print(text.substring(0, maxChars));
+    }
+#else
     int32_t optionsTopY = tftHeight / 2 - menuSize * (FM * 8 + 4) / 2 - 5;
     tft.drawPixel(0, 0, bruceConfig.bgColor);
     if (firstRender) {
@@ -734,17 +839,151 @@ Opt_Coord drawOptions(
     }
 Exit:
     if (options.size() > MAX_MENU_SIZE) menuSize = MAX_MENU_SIZE;
+#endif
 #if defined(HAS_TOUCH)
     TouchFooter();
 #endif
     return coord;
 }
 
+#if UI_COMPACT
+/***************************************************************************************
+** Compact status bar (128x64)
+** One 8px text row between the top border and the divider: clock / "BRUCE x.y" (or a
+** submenu title) on the left, short text tags on the right. The 16px icons don't fit.
+***************************************************************************************/
+static String compactStatusTags() {
+    String tags = "";
+    auto add = [&tags](const String &t) {
+        if (tags.length()) tags += " ";
+        tags += t;
+    };
+    if (sdcardMounted) add("SD");
+    if (gpsConnected) add("GPS");
+    if (WiFi.getMode() != 0) add("WF");
+    if (isWebUIActive) add("WEB");
+    if (BLEConnected) add("BT");
+    if (isConnectedWireguard) add("WG");
+    uint8_t bat = getBattery();
+    if (bat > 0) add(String(bat) + "%");
+    return tags;
+}
+
+// leftText replaces the clock / version text (drawSubmenu puts its title there).
+static void drawStatusBarCompact(const char *leftText) {
+    const int dividerY = STATUS_BAR_HEIGHT - 5;
+    int textY = 6 + (dividerY - 6 - LH) / 2; // centred between the top border (y=5) and the divider
+    if (textY < 6) textY = 6;
+    const int left = 9;
+    const int right = tftWidth - 9;
+
+    if (bruceConfig.theme.border) {
+        tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
+        tft.drawLine(5, dividerY, tftWidth - 6, dividerY, bruceConfig.priColor);
+    }
+    tft.fillRect(left, textY, right - left, LH, bruceConfig.bgColor);
+
+    String tags = compactStatusTags();
+    const int tagsW = tags.length() * LW;
+
+    String txt;
+    if (leftText) {
+        txt = leftText;
+    } else if (clock_set) {
+#if defined(HAS_RTC)
+        updateTimeStr(_rtc.getTimeStruct());
+#else
+        updateTimeStr(rtc.getTimeStruct());
+#endif
+        txt = timeStr;
+    } else {
+        txt = "BRUCE " + String(BRUCE_VERSION);
+    }
+    int maxChars = (right - left - tagsW - (tagsW ? LW : 0)) / LW;
+    if (maxChars < 0) maxChars = 0;
+    if ((int)txt.length() > maxChars) txt = txt.substring(0, maxChars);
+
+    tft.setTextSize(1);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.setCursor(left, textY);
+    tft.print(txt);
+    if (tagsW) {
+        tft.setCursor(right - tagsW, textY);
+        tft.print(tags);
+    }
+}
+
+/***************************************************************************************
+** Compact submenu (128x64)
+** Title in the status bar row; previous / selected / next stacked in the free area so
+** nothing overlaps. Labels that don't fit are cut, long selected labels use the small font.
+***************************************************************************************/
+static void drawSubmenuCompact(int index, std::vector<Option> &options, const char *title) {
+    drawStatusBarCompact(title);
+
+    const int menuSize = options.size();
+    const int areaTop = STATUS_BAR_HEIGHT - 3; // first free row under the divider
+    const int areaBottom = tftHeight - 7;      // last free row above the bottom border
+    const int areaH = areaBottom - areaTop + 1;
+    const int rowH = FM * LH;
+    const int maxCharsFM = (tftWidth - 16) / (LW * FM);
+
+    String selLabel = options[index].label;
+    int selSize = FG;
+    if ((int)selLabel.length() > (tftWidth - 16) / (LW * FG) || 2 * rowH + FG * LH + 2 > areaH) selSize = FM;
+    if ((int)selLabel.length() > maxCharsFM) selLabel = selLabel.substring(0, maxCharsFM);
+    const int selH = selSize * LH;
+
+    // prev row | gap | selected row + underline | gap | next row, centred in the free area
+    int gap = (areaH - (2 * rowH + selH + 2)) / 2;
+    if (gap > 4) gap = 4;
+    if (gap < 0) gap = 0;
+    const int blockH = 2 * rowH + selH + 2 + 2 * gap;
+    const int prevY = areaTop + (areaH - blockH) / 2;
+    const int selY = prevY + rowH + gap;
+    const int lineY = selY + selH + 1;
+    const int nextY = lineY + 1 + gap;
+
+    // Previous item
+    const int firstIndex = index - 1 >= 0 ? index - 1 : menuSize - 1;
+    String prevLabel = options[firstIndex].label;
+    if ((int)prevLabel.length() > maxCharsFM) prevLabel = prevLabel.substring(0, maxCharsFM);
+    tft.fillRect(6, areaTop, tftWidth - 12, selY - areaTop, bruceConfig.bgColor);
+    tft.setTextSize(FM);
+    tft.setTextColor(options[firstIndex].enabled ? bruceConfig.secColor : TFT_DARKGREY);
+    tft.drawCentreString(prevLabel, tftWidth / 2, prevY, SMOOTH_FONT);
+
+    // Selected item, underlined
+    tft.fillRect(6, selY, tftWidth - 12, nextY - selY, bruceConfig.bgColor);
+    tft.setTextSize(selSize);
+    tft.setTextColor(options[index].enabled ? bruceConfig.priColor : TFT_DARKGREY);
+    tft.drawCentreString(selLabel, tftWidth / 2, selY, SMOOTH_FONT);
+    const int lineW = selLabel.length() * selSize * LW;
+    tft.drawFastHLine(tftWidth / 2 - lineW / 2, lineY, lineW, bruceConfig.priColor);
+
+    // Next item
+    const int thirdIndex = index + 1 < menuSize ? index + 1 : 0;
+    String nextLabel = options[thirdIndex].label;
+    if ((int)nextLabel.length() > maxCharsFM) nextLabel = nextLabel.substring(0, maxCharsFM);
+    tft.fillRect(6, nextY, tftWidth - 12, areaBottom - nextY + 1, bruceConfig.bgColor);
+    tft.setTextSize(FM);
+    tft.setTextColor(options[thirdIndex].enabled ? bruceConfig.secColor : TFT_DARKGREY);
+    tft.drawCentreString(nextLabel, tftWidth / 2, nextY, SMOOTH_FONT);
+
+    // Scroll position, in the strip right of the border
+    tft.fillRect(tftWidth - 3, 0, 3, tftHeight, bruceConfig.bgColor);
+    tft.fillRect(tftWidth - 3, index * tftHeight / menuSize, 3, tftHeight / menuSize, bruceConfig.priColor);
+}
+#endif
+
 /***************************************************************************************
 ** Function name: drawSubmenu
 ** Description:   Função para desenhar e mostrar as opçoes de contexto
 ***************************************************************************************/
 void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
+#if UI_COMPACT
+    drawSubmenuCompact(index, options, title);
+#else
     drawStatusBar();
     int menuSize = options.size();
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
@@ -800,9 +1039,13 @@ void drawSubmenu(int index, std::vector<Option> &options, const char *title) {
     tft.drawString("[ x ]", 7, 7, 1);
     TouchFooter();
 #endif
+#endif // UI_COMPACT
 }
 
 void drawStatusBar() {
+#if UI_COMPACT
+    drawStatusBarCompact(nullptr);
+#else
     uint8_t bat = getBattery();
     if (bat > 0) drawBatteryStatus(bat);
 
@@ -898,6 +1141,7 @@ void drawStatusBar() {
             idx++;
         }
     }
+#endif // UI_COMPACT
 }
 
 void drawMainBorder(bool clear) {
@@ -911,6 +1155,9 @@ void drawMainBorder(bool clear) {
     // if(wifiConnected) {tft.print(timeStr);} else {tft.print("BRUCE 1.0b");}
 
     drawStatusBar();
+#if UI_COMPACT
+    tft.setCursor(BORDER_PAD_X, BORDER_PAD_Y); // content starts under the one-line status bar
+#endif
 
 #if defined(HAS_TOUCH)
     TouchFooter();
@@ -1006,7 +1253,13 @@ void drawWireguardStatus(int x, int y) {
 ** Function name: listFiles
 ** Description:   Função para desenhar e mostrar o menu principal
 ***************************************************************************************/
+#if UI_COMPACT
+#define MAX_ITEMS (int)((tftHeight - 16) / (LH * FM)) // 6 rows between the borders on 64px
+#define LIST_TOP_Y 8
+#else
 #define MAX_ITEMS (int)(tftHeight - 20) / (LH * FM)
+#define LIST_TOP_Y 10
+#endif
 Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
     Opt_Coord coord;
     tft.drawPixel(0, 0, bruceConfig.bgColor);
@@ -1014,7 +1267,7 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
         tft.fillScreen(bruceConfig.bgColor);
         tft.drawRoundRect(5, 5, tftWidth - 10, tftHeight - 10, 5, bruceConfig.priColor);
     }
-    tft.setCursor(10, 10);
+    tft.setCursor(10, LIST_TOP_Y);
     tft.setTextSize(FM);
     int i = 0;
     int arraySize = fileList.size();

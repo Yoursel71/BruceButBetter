@@ -214,6 +214,14 @@ void setup_gpio() {
  **  Config tft
  *********************************************************************/
 void begin_tft() {
+#if defined(USE_DIRECT_ROTATION)
+    // Landscape-only panel: a portrait value (1/3) from an old config file or the
+    // settings menu squeezes the UI into a corner. Fall back to the board default.
+    if (bruceConfigPins.rotation != 0 && bruceConfigPins.rotation != 2) bruceConfigPins.rotation = ROTATION;
+#endif
+#if defined(FORCE_COLOR_NORMAL)
+    bruceConfig.colorInverted = 0; // don't let an old config file (e.g. on the SD card) invert the screen
+#endif
     tft.setRotation(bruceConfigPins.rotation); // sometimes it misses the first command
     tft.invertDisplay(bruceConfig.colorInverted);
     tft.setRotation(bruceConfigPins.rotation);

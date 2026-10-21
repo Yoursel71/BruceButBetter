@@ -21,6 +21,11 @@
 #ifndef BORDER_PAD_Y
 #define BORDER_PAD_Y 28
 #endif
+// Compact layout for very small screens (e.g. 128x64 OLED). Boards opt in with -DUI_COMPACT=1;
+// everyone else keeps the original layout.
+#ifndef UI_COMPACT
+#define UI_COMPACT 0
+#endif
 #define MENU_TYPE_MAIN 0
 #define MENU_TYPE_SUBMENU 1
 #define MENU_TYPE_REGULAR 2

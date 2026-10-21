@@ -14,6 +14,27 @@
 
 #define RUN_ON_MUTEX(fn) fn;
 
+// 1-bit panels (OLED): LovyanGFX draws mid-tone colours on these as a dot pattern, so the
+// purple theme, grey items and coloured stripes come out speckled. With -DTFT_MONOCHROME every
+// colour passed to the tft_display drawing calls is snapped to pure white or black first.
+// pushImage (photos, icons from files) is left alone: there the dot pattern is useful.
+// tft_sprite calls are not covered.
+#if defined(TFT_MONOCHROME)
+#ifndef TFT_MONO_THRESHOLD
+#define TFT_MONO_THRESHOLD 24 // brightness (0..255) below which a colour counts as black
+#endif
+static inline uint16_t monoColor(uint32_t color) {
+    const uint32_t c = color & 0xFFFF; // RGB565
+    const uint32_t r = (c >> 8) & 0xF8;
+    const uint32_t g = (c >> 3) & 0xFC;
+    const uint32_t b = (c << 3) & 0xF8;
+    return ((r + (g << 1) + b) >> 2) >= TFT_MONO_THRESHOLD ? 0xFFFF : 0x0000;
+}
+#define TFT_COLOR(c) monoColor(c)
+#else
+#define TFT_COLOR(c) ((uint16_t)(c))
+#endif
+
 tft_display::tft_display(int16_t _W, int16_t _H) : _height(_H), _width(_W) {}
 
 void tft_display::begin(uint32_t speed) {
@@ -145,27 +166,27 @@ void tft_display::setRotation(uint8_t r) {
 }
 
 void tft_display::drawPixel(int32_t x, int32_t y, uint32_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawPixel(x, y, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawPixel(x, y, TFT_COLOR(color)));
 }
 
 void tft_display::drawLine(int32_t x0, int32_t y0, int32_t x1, int32_t y1, uint32_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawLine(x0, y0, x1, y1, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawLine(x0, y0, x1, y1, TFT_COLOR(color)));
 }
 
 void tft_display::drawFastHLine(int32_t x, int32_t y, int32_t w, uint32_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawFastHLine(x, y, w, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawFastHLine(x, y, w, TFT_COLOR(color)));
 }
 
 void tft_display::drawFastVLine(int32_t x, int32_t y, int32_t h, uint32_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawFastVLine(x, y, h, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawFastVLine(x, y, h, TFT_COLOR(color)));
 }
 
 void tft_display::drawRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawRect(x, y, w, h, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawRect(x, y, w, h, TFT_COLOR(color)));
 }
 
 void tft_display::fillRect(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::fillRect(x, y, w, h, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::fillRect(x, y, w, h, TFT_COLOR(color)));
 }
 
 void tft_display::fillRectHGradient(
@@ -182,42 +203,42 @@ void tft_display::fillRectVGradient(
     RUN_ON_MUTEX(fillRect(x, y, w, h, (uint16_t)color1));
 }
 
-void tft_display::fillScreen(uint32_t color) { RUN_ON_MUTEX(lgfx::LGFX_Device::fillScreen((uint16_t)color)); }
+void tft_display::fillScreen(uint32_t color) { RUN_ON_MUTEX(lgfx::LGFX_Device::fillScreen(TFT_COLOR(color))); }
 
 void tft_display::drawRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawRoundRect(x, y, w, h, r, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawRoundRect(x, y, w, h, r, TFT_COLOR(color)));
 }
 
 void tft_display::fillRoundRect(int32_t x, int32_t y, int32_t w, int32_t h, int32_t r, uint32_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::fillRoundRect(x, y, w, h, r, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::fillRoundRect(x, y, w, h, r, TFT_COLOR(color)));
 }
 
 void tft_display::drawCircle(int32_t x0, int32_t y0, int32_t r, uint32_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawCircle(x0, y0, r, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawCircle(x0, y0, r, TFT_COLOR(color)));
 }
 
 void tft_display::fillCircle(int32_t x0, int32_t y0, int32_t r, uint32_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::fillCircle(x0, y0, r, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::fillCircle(x0, y0, r, TFT_COLOR(color)));
 }
 
 void tft_display::drawTriangle(
     int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color
 ) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawTriangle(x0, y0, x1, y1, x2, y2, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawTriangle(x0, y0, x1, y1, x2, y2, TFT_COLOR(color)));
 }
 
 void tft_display::fillTriangle(
     int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t color
 ) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::fillTriangle(x0, y0, x1, y1, x2, y2, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::fillTriangle(x0, y0, x1, y1, x2, y2, TFT_COLOR(color)));
 }
 
 void tft_display::drawEllipse(int16_t x0, int16_t y0, int32_t rx, int32_t ry, uint16_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawEllipse(x0, y0, rx, ry, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawEllipse(x0, y0, rx, ry, TFT_COLOR(color)));
 }
 
 void tft_display::fillEllipse(int16_t x0, int16_t y0, int32_t rx, int32_t ry, uint16_t color) {
-    RUN_ON_MUTEX(lgfx::LGFX_Device::fillEllipse(x0, y0, rx, ry, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::fillEllipse(x0, y0, rx, ry, TFT_COLOR(color)));
 }
 
 void tft_display::drawArc(
@@ -226,42 +247,42 @@ void tft_display::drawArc(
 ) {
     (void)bg_color;
     (void)smoothArc;
-    RUN_ON_MUTEX(lgfx::LGFX_Device::fillArc(x, y, r, ir, startAngle + 90, endAngle + 90, (uint16_t)fg_color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::fillArc(x, y, r, ir, startAngle + 90, endAngle + 90, TFT_COLOR(fg_color)));
 }
 
 void tft_display::drawWideLine(
     float ax, float ay, float bx, float by, float wd, uint32_t fg_color, uint32_t bg_color
 ) {
     (void)bg_color;
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawWideLine(ax, ay, bx, by, wd, (uint16_t)fg_color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawWideLine(ax, ay, bx, by, wd, TFT_COLOR(fg_color)));
 }
 
 void tft_display::drawXBitmap(
     int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color
 ) {
     if (!bitmap) return;
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawXBitmap(x, y, bitmap, w, h, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawXBitmap(x, y, bitmap, w, h, TFT_COLOR(color)));
 }
 
 void tft_display::drawXBitmap(
     int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color, uint16_t bg
 ) {
     if (!bitmap) return;
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawXBitmap(x, y, bitmap, w, h, (uint16_t)color, (uint16_t)bg));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawXBitmap(x, y, bitmap, w, h, TFT_COLOR(color), TFT_COLOR(bg)));
 }
 
 void tft_display::drawBitmap(
     int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color
 ) {
     if (!bitmap) return;
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawBitmap(x, y, bitmap, w, h, (uint16_t)color));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawBitmap(x, y, bitmap, w, h, TFT_COLOR(color)));
 }
 
 void tft_display::drawBitmap(
     int16_t x, int16_t y, const uint8_t *bitmap, int16_t w, int16_t h, uint16_t color, uint16_t bg
 ) {
     if (!bitmap) return;
-    RUN_ON_MUTEX(lgfx::LGFX_Device::drawBitmap(x, y, bitmap, w, h, (uint16_t)color, (uint16_t)bg));
+    RUN_ON_MUTEX(lgfx::LGFX_Device::drawBitmap(x, y, bitmap, w, h, TFT_COLOR(color), TFT_COLOR(bg)));
 }
 
 void tft_display::pushImage(int32_t x, int32_t y, int32_t w, int32_t h, const uint16_t *data) {
@@ -330,14 +351,23 @@ void tft_display::setTextSize(uint8_t s) {
 
 void tft_display::setTextColor(uint16_t c) {
     _textColor = c;
-    lgfx::LGFX_Device::setTextColor((uint16_t)c);
+    lgfx::LGFX_Device::setTextColor(TFT_COLOR(c));
 }
 
 void tft_display::setTextColor(uint16_t c, uint16_t b, bool bgfill) {
     (void)bgfill;
     _textColor = c;
     _textBgColor = b;
+#if defined(TFT_MONOCHROME)
+    uint16_t fg = TFT_COLOR(c);
+    uint16_t bg = TFT_COLOR(b);
+    // Two different colours can snap to the same mono colour (e.g. white text on a red box):
+    // flip the text so it stays readable. Equal colours are kept, they are used to erase text.
+    if (c != b && fg == bg) fg = bg ? 0x0000 : 0xFFFF;
+    lgfx::LGFX_Device::setTextColor(fg, bg);
+#else
     lgfx::LGFX_Device::setTextColor((uint16_t)c, (uint16_t)b);
+#endif
 }
 
 void tft_display::setTextDatum(uint8_t d) { _textDatum = d; }
@@ -368,7 +398,7 @@ int16_t tft_display::drawRightString(const String &string, int32_t x, int32_t y,
 
 size_t tft_display::write(uint8_t c) {
     size_t t = 0;
-    RUN_ON_MUTEX(lgfx::LGFX_Device::write(c));
+    RUN_ON_MUTEX(t = lgfx::LGFX_Device::write(c));
     return t;
 }
 
