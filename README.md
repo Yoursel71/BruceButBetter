@@ -37,6 +37,14 @@ for the 1.3" 128×64 mono OLED, and a few extra modules — most notably an **Si
 generator** (8 kHz–160 MHz), an NRF24 sniffer, and a hardware self-test that probes the I²C/SPI
 buses and reports every module that answers. Everything else tracks upstream.
 
+<p align="center">
+  <img src="docs/img/build-hero.jpg" width="200" alt="Icon grid main menu">
+  <img src="docs/img/ui-submenu.jpg" width="200" alt="NRF24 submenu list">
+  <img src="docs/img/ui-game.jpg" width="200" alt="Game">
+  <img src="docs/img/ui-qr.jpg" width="200" alt="QR code">
+</p>
+<p align="center"><sub>Screen + button board on a 50×70 mm protoboard: icon grid main menu, a submenu list, a game and a QR code.</sub></p>
+
 ## Build one (~$40)
 
 Full parts list, wiring, and assembly: **[DIY build guide →](./docs/BUILD.md)**

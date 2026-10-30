@@ -7,9 +7,7 @@ Sub-GHz, NFC/RFID, 2.4 GHz, IR, WiFi/BLE and a signal generator — on a protobo
 > want; a missing one just shows "not found" and the rest still works. Start with the ESP32-S3 +
 > screen + buttons, add radios later.
 
-<!-- TODO: add a photo of YOUR finished build here — this is the single most important image in the repo.
-<p align="center"><img src="img/build-hero.jpg" width="640" alt="finished DIY Flipper"></p>
--->
+<p align="center"><img src="img/build-hero.jpg" width="360" alt="Screen and button board on a 50×70 mm protoboard, showing the icon grid main menu"></p>
 
 ---
 
