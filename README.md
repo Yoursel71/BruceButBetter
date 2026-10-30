@@ -85,7 +85,7 @@ See [`boards/`](./boards) for the list and [`docs/BUILD.md`](./docs/BUILD.md) fo
 
 | Domain | Highlights |
 |---|---|
-| **WiFi** | AP/scan, beacon spam, deauth, evil portal, wardriving, sniffer |
+| **WiFi** | AP/scan, beacon spam, deauth, evil portal, sniffer (wardriving needs GPS, which the ESP-General build does not include) |
 | **BLE** | Scan, Bad BLE (Ducky), pairing spam |
 | **Sub-GHz (CC1101)** | Scan/copy, replay, spectrum, jammer |
 | **NFC/RFID (PN532)** | Read/clone/write, NDEF, emulation |
