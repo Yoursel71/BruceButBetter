@@ -75,6 +75,16 @@ void BruceConfigPins::fromJson(JsonObject obj) {
         count++;
         log_e("Fail");
     }
+    // Older configs saved the Grove pins. On boards that moved the RF433 pins off them, the Grove
+    // pins are the display I2C bus: replace them and save the corrected file.
+    if (RF_TX_DEFAULT != GROVE_SDA && (rfTx == GROVE_SDA || rfTx == GROVE_SCL)) {
+        rfTx = RF_TX_DEFAULT;
+        count++;
+    }
+    if (RF_RX_DEFAULT != GROVE_SCL && (rfRx == GROVE_SDA || rfRx == GROVE_SCL)) {
+        rfRx = RF_RX_DEFAULT;
+        count++;
+    }
     if (!root["rfModule"].isNull()) {
         rfModule = root["rfModule"].as<int>();
     } else {

@@ -106,6 +106,13 @@ static const uint8_t SS   = SPI_SS_PIN;
 #define LED_ON  HIGH
 #define LED_OFF LOW
 
+// ── RF433 single-pin module (not fitted; CC1101 is the RF module) ────────────
+// Generic default is the Grove pins, which are the OLED/PN532/Si5351 I2C bus here.
+// Use the only pins the RF TX/RX menu offers (RF_TX_PINS / RF_RX_PINS in ESP-General.ini),
+// which are shared with IR.
+#define RF_TX_DEFAULT 2
+#define RF_RX_DEFAULT 1
+
 // ── Buzzer ───────────────────────────────────────────────────────────────────
 #define BUZZ_PIN 47
 

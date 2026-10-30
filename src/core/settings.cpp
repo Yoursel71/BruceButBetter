@@ -623,7 +623,7 @@ void setEvilGatewayIp() {
 **  Handles Menu to set the RF module in use
 **********************************************************************/
 void setRFModuleMenu() {
-    int result = 0;
+    int result = -1; // stays -1 when the menu is left with BACK
     int idx = 0;
     uint8_t pins_setup = 0;
     if (bruceConfigPins.rfModule == M5_RF_MODULE) idx = 0;
@@ -649,6 +649,10 @@ void setRFModuleMenu() {
          */
     };
     loopOptions(options, idx);
+    if (result == M5_RF_MODULE) {
+        bruceConfigPins.setRfModule(M5_RF_MODULE);
+        return;
+    }
     if (result == CC1101_SPI_MODULE || pins_setup > 0) {
         // This setting is meant to StickCPlus and StickCPlus2 to setup the ports from RF Menu
         if (pins_setup == 1) {
@@ -706,8 +710,7 @@ void setRFModuleMenu() {
             );
         while (!check(AnyKeyPress)) vTaskDelay(50 / portTICK_PERIOD_MS);
     }
-    // fallback to "M5 RF433T/R" on errors
-    bruceConfigPins.setRfModule(M5_RF_MODULE);
+    // BACK, or the CC1101 was not found: keep the module that was set before.
 }
 
 /*********************************************************************
@@ -1148,7 +1151,7 @@ int gsetIrRxPin(bool set) {
 int gsetRfTxPin(bool set) {
     int result = bruceConfigPins.rfTx;
 
-    if (result > 45) bruceConfigPins.setRfTxPin(GROVE_SDA);
+    if (result > 45) bruceConfigPins.setRfTxPin(RF_TX_DEFAULT);
     if (set) {
         options.clear();
         std::vector<std::pair<const char *, int>> pins;
@@ -1185,7 +1188,7 @@ int gsetRfTxPin(bool set) {
 int gsetRfRxPin(bool set) {
     int result = bruceConfigPins.rfRx;
 
-    if (result > 36) bruceConfigPins.setRfRxPin(GROVE_SCL);
+    if (result > 36) bruceConfigPins.setRfRxPin(RF_RX_DEFAULT);
     if (set) {
         options.clear();
         std::vector<std::pair<const char *, int>> pins;

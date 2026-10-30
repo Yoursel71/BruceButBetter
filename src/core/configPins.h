@@ -23,6 +23,15 @@ enum RFModules {
     CC1101_SPI_MODULE = 1,
 };
 
+// Default pins of the single-pin RF433 module ("M5 RF433T/R"). Most boards use the Grove port.
+// A board whose Grove pins carry the display I2C bus defines its own in pins_arduino.h.
+#ifndef RF_TX_DEFAULT
+#define RF_TX_DEFAULT GROVE_SDA
+#endif
+#ifndef RF_RX_DEFAULT
+#define RF_RX_DEFAULT GROVE_SCL
+#endif
+
 class BruceConfigPins {
 public:
     struct UARTPins {
@@ -205,8 +214,8 @@ public:
     int irRx = RXLED;
 
     // RF
-    int rfTx = GROVE_SDA;
-    int rfRx = GROVE_SCL;
+    int rfTx = RF_TX_DEFAULT;
+    int rfRx = RF_RX_DEFAULT;
     int rfModule = M5_RF_MODULE;
     float rfFreq = 433.92;
     int rfFxdFreq = 1;
