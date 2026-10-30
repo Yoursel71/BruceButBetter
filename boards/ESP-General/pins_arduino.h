@@ -66,6 +66,20 @@ static const uint8_t SS   = SPI_SS_PIN;
 #define SDCARD_MISO  SPI_MISO_PIN
 #endif
 
+// ── Optional RFID add-ons (not populated by default) ─────────────────────────
+// The firmware already ships the RC522 (MFRC522) and 125 kHz EM4100 (rfid125)
+// drivers; these lines just hand them free pins so they can be wired in. PN532
+// stays the default reader (shared I2C above) — pick RC522 from the RFID menu
+// to use it instead.
+//
+// RC522 rides the shared SPI bus (MOSI/SCK/MISO above) and only needs its own
+// chip-select. GPIO10 is already the CC1101 CS, so give the RC522 a dedicated one:
+#define RFID2_SS_PIN   21
+// 125 kHz EM4100 reader is a 9600-baud UART module. SERIAL_RX/TX here are the
+// USB-UART debug lines, so point rfid125 at free GPIOs instead:
+#define RFID125_RX_PIN 17   // reader DATA/TX  -> ESP RX
+#define RFID125_TX_PIN 42   // ESP TX -> reader (most read-only readers ignore it)
+
 // ── NRF24L01 #1 ──────────────────────────────────────────────────────────────
 #ifndef USE_NRF24_VIA_SPI
 #define USE_NRF24_VIA_SPI
@@ -137,5 +151,9 @@ static const uint8_t SS   = SPI_SS_PIN;
 // GPIO 33-37 : OPI PSRAM (N16R8)
 // GPIO 43-44 : UART0 TX/RX
 // GPIO 45-46 : Strapping
+//
+// Note: the ESP32-S3 has GPIO 0-21 and 26-48 only — GPIO 22-25 do NOT exist.
+// Free GPIOs on this board: 17, 21, 42, 48. The optional RFID add-ons above
+// claim 17/21/42, leaving GPIO 48 spare.
 
 #endif /* Pins_Arduino_h */

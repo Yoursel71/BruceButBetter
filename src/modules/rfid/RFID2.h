@@ -11,6 +11,13 @@
 #include <MFRC522DriverPinSimple.h>
 #include <MFRC522v2.h>
 
+// Let a board give the RC522 / RFID2 its own SPI chip-select. When a board
+// doesn't override it this falls back to the shared bus SS pin, so every
+// existing board keeps exactly the behaviour it had before.
+#ifndef RFID2_SS_PIN
+#define RFID2_SS_PIN SPI_SS_PIN
+#endif
+
 class RFID2 : public RFIDInterface {
 public:
     MFRC522 mfrc522;
@@ -40,7 +47,7 @@ public:
 private:
     bool _use_i2c;
     MFRC522Driver *_driver;
-    MFRC522DriverPinSimple ss_pin = MFRC522DriverPinSimple(SPI_SS_PIN);
+    MFRC522DriverPinSimple ss_pin = MFRC522DriverPinSimple(RFID2_SS_PIN);
 
     /////////////////////////////////////////////////////////////////////////////////////
     // Converters
