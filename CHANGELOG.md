@@ -6,6 +6,33 @@ All notable changes to BruceButBetter. Format loosely follows
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-10-30
+
+### Changed
+- **Main menu is a 4×2 icon grid.** On the 128×64 OLED (ESP-General compact UI) the single-icon
+  carousel is replaced by eight 16 px icons per page, a framed focus cell, page dots, an `n/total`
+  counter and the focused app's full name in the footer (scrolls when it does not fit). Hidden apps
+  drop out of the grid and the counter.
+- **Grid navigation.** LEFT/RIGHT move one cell in reading order and continue across rows and pages;
+  UP/DOWN change row and flip to the previous/next page at the edge, keeping the column.
+- **Fixed-slot status bar.** Indicators (S W @ B [G] V) keep their positions when one turns on or off,
+  battery % or `USB` stays at the right edge, and indicators also show while a title is displayed.
+  A category's name stays as the title on every screen below it.
+- **Icons redrawn for 16 px.** Icons scale from a 24-unit design grid; Files (folder), NRF24 (double
+  antenna), Infrared (two beams) and Sub-GHz (tighter rings) were redrawn to stay legible.
+
+### Added
+- **List footers** with a divider and key hints (`OK:Sec BACK:Geri`, `OK:Degistir`, and
+  `OK:Ac BACK:Ust` in the file browser).
+- **BACK in dialogs** closes single-button dialogs and selects `Cancel` when one is present.
+- `displayLoading()` for indeterminate waits and `setCompactScreenTitle()` for modules.
+
+### Improved
+- Lists, the icon grid, dialogs and progress screens are drawn in one batch
+  (`startWrite`/`endWrite`) on LovyanGFX panels to reduce flicker.
+- The Web UI Navigator log grows from 64 to 128 entries on the compact UI so a full grid page is
+  captured.
+
 ## [1.3.0] — 2026-10-22
 
 ### Fixed
@@ -96,7 +123,8 @@ First public release of the DIY ESP32-S3 N16R8 build.
 - `esp32-c5` variants need the RISC-V toolchain; `arduino-nesso-n1` rejects the MSYS build env —
   both build from source rather than shipping a prebuilt bin.
 
-[Unreleased]: https://github.com/Yoursel71/BruceButBetter/compare/v1.3.0...master
+[Unreleased]: https://github.com/Yoursel71/BruceButBetter/compare/v1.4.0...master
+[1.4.0]: https://github.com/Yoursel71/BruceButBetter/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Yoursel71/BruceButBetter/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/Yoursel71/BruceButBetter/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/Yoursel71/BruceButBetter/compare/v1.0.0...v1.1.0
