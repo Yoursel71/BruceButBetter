@@ -52,11 +52,19 @@ public:
     void begin(void);
     std::vector<MenuItemInterface *> getItems(void) { return _menuItems; }
     void hideAppsMenu();
+#if defined(UI_COMPACT) && UI_COMPACT
+    void drawCompactGrid(MenuItemInterface *hovered);
+#endif
 
 private:
     int _currentIndex = 0;
     int _totalItems = 0;
     std::vector<MenuItemInterface *> _menuItems;
+#if defined(UI_COMPACT) && UI_COMPACT
+    // Menus shown in the grid, in grid order (hidden menus removed).
+    std::vector<MenuItemInterface *> _visibleItems;
+    static void drawGridCell(int item, int centerX, int centerY);
+#endif
 };
 extern MainMenu mainMenu;
 

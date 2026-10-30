@@ -25,26 +25,43 @@ Bozuk/açılamayan görseller, bellek ayırma hataları ve düğmesiz mesajlar
 korumalıdır. Web UI dosya açmayı sınırlı sayıda dener; şifreli yüklemede
 yalnız tek parça kabul edilir ve gelen veri uzunluğu kadar kopyalanır.
 
-- Ana menüde 18 menü türü için doğrudan 24×24 piksel hücreye çizilen ikonlar bulunur.
+- Ana menü 4×2 ikon ızgarasıdır: sayfa başına 8 menü, 13 menü iki sayfaya yayılır.
+  SOL/SAĞ hücreleri okuma sırasıyla dolaşır (satır ve sayfa sonunda devam eder),
+  YUKARI/AŞAĞI satır değiştirir; üst/alt kenarda önceki/sonraki sayfaya geçer.
+  Seçili hücre 1 px yuvarlak çerçeveyle sarılır. Ana menüde BACK bir şey yapmaz.
+- İkonlar 24×24 tasarım biriminde tanımlıdır ve ızgarada 16 px ölçekle çizilir.
   Her menü sınıfı `compactIcon()` ile kendi simgesini seçer; isim değişiklikleri simgeyi etkilemez.
+- Alt şerit (y=54…63) seçili menünün tam adını, sayfa noktalarını (dolu = bu sayfa) ve
+  `n/toplam` sayacını gösterir. Sığmayan ad listelerdeki gibi kayar. Sayaç, gizlenen
+  menüler çıkarıldıktan sonraki görünür menü sayısını kullanır.
 - Durum çubuğu tek satırdır. `S`: SD, `W`: Wi-Fi, `@`: Web UI, `B`: Bluetooth,
-  `G`: GPS, `V`: WireGuard. Sağda pil yüzdesi veya USB göstergesi bulunur.
-- Ana menü başlığı ve sayfa göstergesi ikonun altında ayrı satırlardadır.
-  Sayaç, gizlenen menüler çıkarıldıktan sonraki görünür menü sayısını kullanır.
+  `G`: GPS (GPS kapalı derlemelerde yuvası yoktur), `V`: WireGuard. Her harfin sabit bir
+  yuvası vardır; biri açılıp kapanınca diğerleri kaymaz. Sağ kenar her zaman pil yüzdesi
+  veya `USB` ile biter. Ana menüde solda saat (ayarlı değilse `BRUCE`) durur; bir kategori
+  açılınca onun adı (ör. `WiFi`) o kategorinin altındaki tüm ekranlarda solda kalır.
 - Alt menüler, bağlam menüleri ve dosya tarayıcısı dört satır gösterir.
   Seçili satır ters renklidir; uzun adlar kısa bir beklemeden sonra kayar.
   `*` seçili ayarı, `-` kullanılamayan seçeneği, `/` klasörü belirtir.
-- İletişim pencerelerinin metni en fazla üç satıra bölünür. Düğmeler ve ilerleme çubuğu
-  içerikten ayrılmıştır; toplam boyutu sıfır olan ilerleme çağrıları da geçerlidir.
+  Alt şeritte ince ayırıcının altında tuş ipucu ve `mevcut/toplam` sayacı bulunur:
+  `OK:Sec BACK:Geri`, ayar listelerinde `OK:Degistir`, dosya tarayıcısında
+  `OK:Ac BACK:Ust`. Yazı tipi Türkçe harf içermediği için ipuçları ASCII yazılır.
+- İletişim pencerelerinin metni en fazla üç satıra bölünür. Düğmeler (x=2/44/86, y=50)
+  ve ilerleme çubuğu içerikten ayrılmıştır; toplam boyutu sıfır olan ilerleme çağrıları da
+  geçerlidir. BACK tek düğmeli pencereyi kapatır, varsa `Cancel` düğmesini seçer.
+- `displayLoading(mesaj)` süresi belli olmayan bekleyişler içindir: tekrar tekrar çağrıldıkça
+  çubuğun içinde bir blok gidip gelir.
 - Web UI arka planda açılır. Cihazın menüsü kullanımda kalır ve Navigator görüntüsü
   menünün kendi çizim döngüsü üzerinden yenilenir.
 
-128×64 yatay görünümde durum çubuğu y=0…13, ana menü ikonu x=52…75/y=17…40,
-başlık y=46…53 ve sayfa göstergesi y=56…63 aralığındadır. Listeler y=14…53 aralığına sığar.
+128×64 yatay görünümde durum çubuğu y=0…13 (ayırıcı y=11), ızgara satırlarının
+çerçeveleri y=14…33 ve y=34…53, ikon merkezleri x=16/48/80/112, y=24/44, alt şerit
+y=54…63 aralığındadır. Listeler y=14…53 aralığına sığar.
 
 İkonlar `src/core/menu_items/compact_icons.cpp` içindedir. Standart çizim çağrıları kullanılır;
-bu nedenle Web UI Navigator da simgeleri gösterebilir. Bir ikon en fazla 12 çizim çağrısı kullanır;
-ana ekranın tamamı 64 kayıtlık Navigator günlüğüne sığmalıdır.
+bu nedenle Web UI Navigator da simgeleri gösterebilir. Bir ikon en fazla 12 çizim çağrısı kullanır.
+Izgaranın bir sayfası 65 civarı çizim çağrısıdır; Navigator günlüğü bu yüzden kompakt
+arayüzde 128 kayıttır. Bir ekranın çizimleri tek seferde panele gönderilir
+(`startWrite`/`endWrite`); amaç imleç hareketindeki titremeyi azaltmaktır.
 
 Kompakt ana menü kendi yerleşik ikonlarını kullanır. Renkli ekranların mevcut ikonları,
 tema/GIF çizimleri ve düzeni `UI_COMPACT` kapalı dalında korunur.
@@ -55,5 +72,6 @@ Derleme:
 platformio run -e esp32-s3-devkitc-1-psram
 ```
 
-Cihaz kontrolünde ana menünün iki yönde dolaşılması, ilk/son öğeye geçilmesi, uzun bir
-etiketin kayması, dosya listesi ve onay düğmelerinin sınırları kontrol edilmelidir.
+Cihaz kontrolünde ızgaranın dört yönde dolaşılması, sayfa geçişleri ve kısa son satır,
+uzun bir adın alt şeritte kayması, durum çubuğu yuvaları, dosya listesi, onay düğmelerinin
+sınırları ve BACK ile iptal kontrol edilmelidir.

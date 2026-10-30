@@ -44,6 +44,19 @@ struct Opt_Coord {
 void displayScrollingText(const String &text, Opt_Coord &coord);
 #if UI_COMPACT
 void requestCompactMenuRedraw();
+
+// Main menu icon grid (128x64): 4 columns x 2 rows per page, 16 px icons.
+#define ICON_GRID_COLS 4
+#define ICON_GRID_ROWS 2
+#define ICON_GRID_PAGE (ICON_GRID_COLS * ICON_GRID_ROWS)
+#define ICON_GRID_ICON_SIZE 16
+// Draws grid item `item` with its icon centred on (centerX, centerY).
+typedef void (*IconGridCellFn)(int item, int centerX, int centerY);
+void drawIconGrid(int index, int total, const String &label, IconGridCellFn drawCell);
+// New focus after a grid step: dx = -1/+1 (LEFT/RIGHT, reading order), dy = -1/+1 (UP/DOWN, row or page).
+int iconGridMove(int index, int total, int dx, int dy);
+// Left side of the status bar on the following screens; the main menu clears it.
+void setCompactScreenTitle(const String &title);
 #endif
 
 #if !defined(LITE_VERSION)
@@ -210,6 +223,8 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList);
 void drawWireguardStatus(int x, int y);
 
 void progressHandler(int progress, size_t total, String message = "Running, Wait");
+// Progress of unknown length: call repeatedly while waiting; a block slides inside the bar.
+void displayLoading(const String &message = "Loading...");
 
 bool __attribute__((weak)) isCharging();
 

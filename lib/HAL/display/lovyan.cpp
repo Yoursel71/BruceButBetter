@@ -162,6 +162,10 @@ void tft_display::init(uint8_t tc) {
     begin();
 }
 
+void tft_display::startWrite() { lgfx::LGFX_Device::startWrite(); }
+
+void tft_display::endWrite() { lgfx::LGFX_Device::endWrite(); }
+
 void tft_display::setRotation(uint8_t r) {
     lgfx::LGFX_Device::setRotation(r);
     _rotation = r;

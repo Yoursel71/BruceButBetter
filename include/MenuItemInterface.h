@@ -5,6 +5,9 @@
 #include <globals.h>
 #if defined(UI_COMPACT) && UI_COMPACT
 #include "core/menu_items/compact_icons.h"
+class MenuItemInterface;
+// Draws the top-level icon grid with `hovered` focused. Defined in main_menu.cpp.
+void drawCompactMainGrid(MenuItemInterface *hovered);
 #endif
 
 class MenuItemInterface {
@@ -30,23 +33,18 @@ public:
     String getName() const { return _name; }
 
 #if defined(UI_COMPACT) && UI_COMPACT
-    void setCompactPosition(int index, int count) {
-        compactItemIndex = index;
-        compactItemCount = count;
+    // One cell of the main menu icon grid. The icon follows the class, not its (renamable) name.
+    void drawGridIcon(int centerX, int centerY) {
+        drawCompactMenuIcon(
+            compactIcon(), centerX, centerY, bruceConfig.priColor, bruceConfig.bgColor, ICON_GRID_ICON_SIZE
+        );
     }
 #endif
 
     void draw(float scale = 1) {
 #if defined(UI_COMPACT) && UI_COMPACT
-        resetCoordinates();
-        tft.fillRect(0, compactContentY, tftWidth, tftHeight - compactContentY, bruceConfig.bgColor);
-        drawCompactMenuIcon(
-            compactIcon(), iconCenterX, iconCenterY, bruceConfig.priColor, bruceConfig.bgColor
-        );
-        drawArrows();
-        drawTitle();
-        drawCompactPosition();
-        drawStatusBar();
+        (void)scale;
+        drawCompactMainGrid(this);
 #else
         if (rotation != bruceConfigPins.rotation) resetCoordinates();
         if (!checkTheme()) {
@@ -170,32 +168,7 @@ protected:
 #if defined(UI_COMPACT) && UI_COMPACT
     int compactContentY = STATUS_BAR_HEIGHT;
     int compactTitleY = 0;
-    int compactItemIndex = 0;
-    int compactItemCount = 0;
     virtual CompactMenuIcon compactIcon() const { return CompactMenuIcon::Tools; }
-
-    void drawCompactPosition() {
-        tft.fillRect(0, tftHeight - 10, tftWidth, 10, bruceConfig.bgColor);
-        if (compactItemCount < 2) return;
-        int maxDots = (tftWidth - 48) / 5;
-        if (maxDots < 1) maxDots = 1;
-        if (maxDots > 14) maxDots = 14;
-        const int count = compactItemCount < maxDots ? compactItemCount : maxDots;
-        int first = compactItemIndex - count / 2;
-        if (first < 0) first = 0;
-        if (first + count > compactItemCount) first = compactItemCount - count;
-        for (int i = 0; i < count; ++i) {
-            const bool active = first + i == compactItemIndex;
-            tft.fillRect(
-                8 + i * 5, tftHeight - (active ? 7 : 4), active ? 3 : 2, active ? 4 : 1, bruceConfig.priColor
-            );
-        }
-        tft.setTextSize(1);
-        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
-        tft.drawRightString(
-            String(compactItemIndex + 1) + "/" + String(compactItemCount), tftWidth - 3, tftHeight - 8, 1
-        );
-    }
 #endif
 
     MenuItemInterface(const String &name) : _name(name) {}

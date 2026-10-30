@@ -47,9 +47,15 @@ void MainMenu::begin(void) {
     options = {};
 
     std::vector<String> l = bruceConfig.disabledMenus;
+#if defined(UI_COMPACT) && UI_COMPACT
+    _visibleItems.clear();
+#endif
     for (int i = 0; i < _totalItems; i++) {
         String itemName = _menuItems[i]->getName();
         if (find(l.begin(), l.end(), itemName) == l.end()) { // If menu item is not disabled
+#if defined(UI_COMPACT) && UI_COMPACT
+            _visibleItems.push_back(_menuItems[i]);
+#endif
             options.push_back(
                 {// selected lambda
                  _menuItems[i]->getName(),
@@ -57,12 +63,13 @@ void MainMenu::begin(void) {
                  false,                                  // selected = false
                  [](void *menuItem, bool shouldRender) { // render lambda
                      if (!shouldRender) return false;
-                     drawMainBorder(false);
 
                      MenuItemInterface *obj = static_cast<MenuItemInterface *>(menuItem);
 #if defined(UI_COMPACT) && UI_COMPACT
-                     obj->draw();
+                     obj->draw(); // whole icon grid, status bar included
 #else
+                     drawMainBorder(false);
+
                      float scale = float((float)tftWidth / (float)240);
                      if (bruceConfigPins.rotation & 0b01) scale = float((float)tftHeight / (float)135);
                      obj->draw(scale);
@@ -77,15 +84,37 @@ void MainMenu::begin(void) {
             );
         }
     }
-#if defined(UI_COMPACT) && UI_COMPACT
-    int compactIndex = 0;
-    for (auto *item : _menuItems) {
-        if (find(l.begin(), l.end(), item->getName()) == l.end())
-            item->setCompactPosition(compactIndex++, static_cast<int>(options.size()));
-    }
-#endif
     _currentIndex = loopOptions(options, MENU_TYPE_MAIN, "Main Menu", _currentIndex);
 };
+
+#if defined(UI_COMPACT) && UI_COMPACT
+/*********************************************************************
+**  Function: drawCompactGrid
+**  Main menu as a 4 x 2 icon grid (two pages for 13 menus)
+**********************************************************************/
+void MainMenu::drawCompactGrid(MenuItemInterface *hovered) {
+    int index = 0;
+    for (size_t i = 0; i < _visibleItems.size(); ++i) {
+        if (_visibleItems[i] == hovered) {
+            index = static_cast<int>(i);
+            break;
+        }
+    }
+    drawIconGrid(
+        index,
+        static_cast<int>(_visibleItems.size()),
+        hovered ? hovered->getName() : String(""),
+        &MainMenu::drawGridCell
+    );
+}
+
+void MainMenu::drawGridCell(int item, int centerX, int centerY) {
+    if (item < 0 || item >= static_cast<int>(mainMenu._visibleItems.size())) return;
+    mainMenu._visibleItems[item]->drawGridIcon(centerX, centerY);
+}
+
+void drawCompactMainGrid(MenuItemInterface *hovered) { mainMenu.drawCompactGrid(hovered); }
+#endif
 
 /*********************************************************************
 **  Function: hideAppsMenu

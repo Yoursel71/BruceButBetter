@@ -35,9 +35,10 @@ enum tftFuncs : uint8_t { // DO NOT CHANGE THE ORDER, ADD NEW FUNCTIONS TO THE E
     SCREEN_INFO = 99 // 99
 };
 #if defined(UI_COMPACT) && UI_COMPACT
-// Keep the complete native icon, carousel indicators and header in the Navigator snapshot.
+// The main menu icon grid (8 icons, status bar, footer) takes about 65 draw calls; keep the whole
+// screen in the Navigator snapshot. logWriteIndex/logCount are uint8_t, so stay at or below 255.
 // Allocation still uses psramFound() at runtime and falls back to the normal heap.
-#define MAX_LOG_ENTRIES 64
+#define MAX_LOG_ENTRIES 128
 #define MAX_LOG_SIZE 128
 #define MAX_LOG_IMAGES 1
 #define MAX_LOG_IMG_PATH 512
