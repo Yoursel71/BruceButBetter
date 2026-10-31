@@ -1662,8 +1662,20 @@ U2fHidDevice g_u2f;
 
 void drawU2fStatusScreen() {
     tft.fillScreen(bruceConfig.bgColor);
-    tft.setTextSize(2);
     tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+#if UI_COMPACT
+    // 128x64: size-1 text that fits; the runtime status sits lower (see updateU2fRuntimeInfo).
+    tft.setTextSize(1);
+    tft.drawCentreString("USB U2F", tftWidth / 2, 0, 1);
+    tft.drawFastHLine(0, 10, tftWidth, bruceConfig.priColor);
+    tft.setCursor(2, 16);
+    tft.print("Ready for register/login");
+    tft.setCursor(2, 26);
+    tft.print("Press OK when prompted");
+    tft.setCursor(2, tftHeight - 8);
+    tft.print("Long OK: Back");
+#else
+    tft.setTextSize(2);
     tft.setCursor(6, 8);
     tft.print("USB U2F");
 
@@ -1674,14 +1686,23 @@ void drawU2fStatusScreen() {
     tft.print("Press center when prompted");
     tft.setCursor(6, 64);
     tft.print("ESC: Back");
+#endif
 }
 
 void updateU2fRuntimeInfo(const U2fHidDevice &device) {
+#if UI_COMPACT
+    tft.fillRect(0, 38, tftWidth, 16, bruceConfig.bgColor);
+    tft.setTextSize(2);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    tft.drawCentreString(device.waitingForPresence() ? "Confirm now" : "Waiting...", tftWidth / 2, 38, 1);
+    tft.setTextSize(1);
+#else
     tft.fillRect(0, 84, tftWidth, tftHeight - 84, bruceConfig.bgColor);
     tft.setTextSize(2);
     tft.setCursor(6, 94);
     tft.print(device.waitingForPresence() ? "Confirm now" : "Waiting...");
     tft.setTextSize(1);
+#endif
 }
 
 } // namespace

@@ -3619,6 +3619,9 @@ void FastPairExploitEngine::generateRandomMac(uint8_t *mac) {
 String selectTargetFromScan(const char *title) {
     scannerData.clear();
 
+#if UI_COMPACT
+    displayInfo("Scanning BLE...");
+#else
     tft.fillScreen(bruceConfig.bgColor);
     tft.drawRect(5, 5, tftWidth - 10, tftHeight - 10, TFT_WHITE);
 
@@ -3630,6 +3633,7 @@ String selectTargetFromScan(const char *title) {
 
     tft.setCursor(20, 60);
     tft.print("Initializing BLE...");
+#endif
 
     if (isBLEInitialized()) {
         BLEStateManager::deinitBLE(true);
@@ -3769,6 +3773,29 @@ String selectTargetFromScan(const char *title) {
         xSemaphoreGive(scannerData.mutex);
     }
 
+#if UI_COMPACT
+    // 128x64: pick the scanned device from a compact scrolling list instead of the fixed layout.
+    {
+        std::vector<Option> opts;
+        std::vector<String> macs;
+        if (xSemaphoreTake(scannerData.mutex, portMAX_DELAY)) {
+            for (size_t i = 0; i < scannerData.deviceAddresses.size(); i++) {
+                String nm = scannerData.deviceNames[i];
+                if (nm.isEmpty()) nm = "Unknown";
+                String label = nm + " " + String(scannerData.deviceRssi[i]) + "dB";
+                if (scannerData.deviceFastPair[i]) label += " FP";
+                opts.push_back({label, []() {}});
+                macs.push_back(scannerData.deviceAddresses[i]);
+            }
+            xSemaphoreGive(scannerData.mutex);
+        }
+        if (opts.empty()) { scannerData.clear(); return ""; }
+        int sel = loopOptions(opts, MENU_TYPE_SUBMENU, title);
+        String result = (sel >= 0 && sel < (int)macs.size()) ? (macs[sel] + ":0") : String("");
+        scannerData.clear();
+        return result;
+    }
+#endif
     int maxVisibleDevices = 3, deviceItemHeight = 30, menuStartY = 60;
     int selectedIdx = 0, scrollOffset = 0;
     int lastSelected = -1, lastScrollOffset = -1;
@@ -3922,6 +3949,12 @@ static bool welcomeShown = false;
 
 void showWelcomeScreen() {
     if (welcomeShown) return;
+#if UI_COMPACT
+    welcomeShown = true;
+    displayInfo("BLE Suite", false);
+    delay(700);
+    return;
+#endif
 
     tft.fillScreen(TFT_GRAY);
     tft.setTextSize(3);
@@ -3960,6 +3993,16 @@ void BleSuiteMenu() {
         "Testing Tools",
         "Universal Attack Chain"
     };
+#if UI_COMPACT
+    while (true) {
+        std::vector<Option> opts;
+        for (int i = 0; i < MENU_ITEMS; i++) {
+            int idx = i;
+            opts.push_back({menuItems[i], [idx]() { executeAttackWithTargetScan(idx); }});
+        }
+        if (loopOptions(opts, MENU_TYPE_SUBMENU, "BLE Suite") < 0) return;
+    }
+#endif
 
     int selected = 0, scrollOffset = 0;
     int lastSelected = -1, lastScrollOffset = -1;
@@ -4086,6 +4129,11 @@ void executeAttackWithTargetScan(int attackIndex) {
 //=============================================================================
 
 int showSubMenu(const char *title, const char *options[], int optionCount) {
+#if UI_COMPACT
+    std::vector<Option> opts;
+    for (int i = 0; i < optionCount; i++) opts.push_back({options[i], []() {}});
+    return loopOptions(opts, MENU_TYPE_SUBMENU, title); // index, or -1 on BACK
+#endif
     tft.fillScreen(bruceConfig.bgColor);
     tft.drawRect(5, 5, tftWidth - 10, tftHeight - 10, TFT_WHITE);
 
@@ -4962,6 +5010,10 @@ void runHFPHIDPivotAttack(NimBLEAddress target) {
 //=============================================================================
 
 void showAttackProgress(const char *message, uint16_t color) {
+#if UI_COMPACT
+    displayInfo(String(message));
+    return;
+#endif
     tft.fillScreen(bruceConfig.bgColor);
     tft.drawRect(5, 5, tftWidth - 10, tftHeight - 10, TFT_WHITE);
 
@@ -5014,6 +5066,11 @@ void showAttackProgress(const char *message, uint16_t color) {
 }
 
 void showAttackResult(bool success, const char *message) {
+#if UI_COMPACT
+    if (success) displaySuccess(message ? String(message) : String("Success"), true);
+    else displayError(message ? String(message) : String("Failed"), true);
+    return;
+#endif
     if (success) {
         tft.fillScreen(TFT_GREEN);
         tft.drawRect(5, 5, tftWidth - 10, tftHeight - 10, TFT_BLACK);
@@ -5079,6 +5136,10 @@ void showAttackResult(bool success, const char *message) {
 }
 
 bool confirmAttack(const char *targetName) {
+#if UI_COMPACT
+    String m = String("Attack ") + targetName + "?";
+    return displayMessage(m.c_str(), "Yes", nullptr, "Cancel", bruceConfig.priColor) == 0;
+#endif
     tft.fillScreen(bruceConfig.bgColor);
     tft.drawRect(5, 5, tftWidth - 10, tftHeight - 10, TFT_WHITE);
 
@@ -5114,6 +5175,9 @@ bool confirmAttack(const char *targetName) {
 }
 
 bool requireSimpleConfirmation(const char *message) {
+#if UI_COMPACT
+    return displayMessage(message, "OK", nullptr, "Cancel", bruceConfig.priColor) == 0;
+#endif
     tft.fillScreen(bruceConfig.bgColor);
     tft.drawRect(5, 5, tftWidth - 10, tftHeight - 10, TFT_WHITE);
 
@@ -5176,6 +5240,17 @@ int8_t showAdaptiveMessage(
 ) {
     int buttonCount = 0;
     if (strlen(btn1) > 0) buttonCount++;
+#if UI_COMPACT
+    const char *b1 = (btn1 && strlen(btn1)) ? btn1 : nullptr;
+    const char *b2 = (btn2 && strlen(btn2)) ? btn2 : nullptr;
+    const char *b3 = (btn3 && strlen(btn3)) ? btn3 : nullptr;
+    if (!b1 && !b2 && !b3) {
+        displayInfo(String(line1), !autoProgress);
+        if (autoProgress) delay(1500);
+        return 0;
+    }
+    return displayMessage(line1, b1, b2, b3, color);
+#endif
     if (strlen(btn2) > 0) buttonCount++;
     if (strlen(btn3) > 0) buttonCount++;
 
@@ -5272,6 +5347,10 @@ int8_t showAdaptiveMessage(
 }
 
 void showWarningMessage(const char *message) {
+#if UI_COMPACT
+    displayWarning(String(message), true);
+    return;
+#endif
     tft.fillScreen(TFT_YELLOW);
     tft.drawRect(5, 5, tftWidth - 10, tftHeight - 10, TFT_BLACK);
     tft.setTextColor(TFT_BLACK, TFT_YELLOW);
@@ -5325,6 +5404,10 @@ void showWarningMessage(const char *message) {
 }
 
 void showErrorMessage(const char *message) {
+#if UI_COMPACT
+    displayError(String(message), true);
+    return;
+#endif
     tft.fillScreen(TFT_RED);
     tft.drawRect(5, 5, tftWidth - 10, tftHeight - 10, TFT_BLACK);
     tft.setTextColor(TFT_WHITE, TFT_RED);
@@ -5377,6 +5460,10 @@ void showErrorMessage(const char *message) {
 }
 
 void showSuccessMessage(const char *message) {
+#if UI_COMPACT
+    displaySuccess(String(message), true);
+    return;
+#endif
     tft.fillScreen(TFT_GREEN);
     tft.drawRect(5, 5, tftWidth - 10, tftHeight - 10, TFT_BLACK);
     tft.setTextColor(TFT_WHITE, TFT_GREEN);
