@@ -43,8 +43,8 @@ yalnız tek parça kabul edilir ve gelen veri uzunluğu kadar kopyalanır.
   Seçili satır ters renklidir; uzun adlar kısa bir beklemeden sonra kayar.
   `*` seçili ayarı, `-` kullanılamayan seçeneği, `/` klasörü belirtir.
   Alt şeritte ince ayırıcının altında tuş ipucu ve `mevcut/toplam` sayacı bulunur:
-  `OK:Sec BACK:Geri`, ayar listelerinde `OK:Degistir`, dosya tarayıcısında
-  `OK:Ac BACK:Ust`. Yazı tipi Türkçe harf içermediği için ipuçları ASCII yazılır.
+  `OK:Select BACK:Back`, ayar listelerinde `OK:Change`, dosya tarayıcısında
+  `OK:Open BACK:Up`. Cihazdaki tüm yazılar İngilizcedir.
 - İletişim pencerelerinin metni en fazla üç satıra bölünür. Düğmeler (x=2/44/86, y=50)
   ve ilerleme çubuğu içerikten ayrılmıştır; toplam boyutu sıfır olan ilerleme çağrıları da
   geçerlidir. BACK tek düğmeli pencereyi kapatır, varsa `Cancel` düğmesini seçer.

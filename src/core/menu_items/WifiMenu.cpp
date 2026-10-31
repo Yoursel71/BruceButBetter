@@ -40,7 +40,7 @@
 // global toggle - controls whether scanNetworks includes hidden SSIDs
 bool showHiddenNetworks = false;
 
-// "Saldırılar" - en güçlü / saldırgan özellikler
+// "Attacks": the strongest / offensive features
 void WifiMenu::attacksMenu() {
     std::vector<Option> atkOptions;
 
@@ -50,8 +50,8 @@ void WifiMenu::attacksMenu() {
                               EvilPortal();
                           }});
     atkOptions.push_back({"NetCut", [=]() { netcutMenu(); }});
-    atkOptions.push_back({"Jammer (Hizli)", nrf_jam_wifi_fast});
-    atkOptions.push_back({"Jammer (Agir)", nrf_jam_wifi_heavy});
+    atkOptions.push_back({"Jammer (Fast)", nrf_jam_wifi_fast});
+    atkOptions.push_back({"Jammer (Heavy)", nrf_jam_wifi_heavy});
     // atkOptions.push_back({"ReverseShell", [=]()       { ReverseShell(); }});
 #ifndef LITE_VERSION
     atkOptions.push_back({"Responder", responder});
@@ -61,7 +61,7 @@ void WifiMenu::attacksMenu() {
     loopOptions(atkOptions, MENU_TYPE_SUBMENU, "Wifi Attacks");
 }
 
-// "Araçlar" - zararsız ağ araçları
+// "Tools": harmless network tools
 void WifiMenu::toolsMenu() {
     std::vector<Option> toolOptions;
 
@@ -95,7 +95,7 @@ void WifiMenu::toolsMenu() {
     loopOptions(toolOptions, MENU_TYPE_SUBMENU, "Wifi Tools");
 }
 
-// "Bağlantı" - temel/zararsız bağlantı işlemleri
+// "Connection": basic, harmless connection actions
 void WifiMenu::connectionMenu() {
     std::vector<Option> connOptions;
 
@@ -120,7 +120,7 @@ void WifiMenu::optionsMenu() {
     options.clear();
     // Note: WiFi features will cleanly stop WebUI automatically when they start
     // User can navigate menu normally even with WebUI active
-    // Sıralama: en güçlü/saldırgan özellikler en üstte, zararsız/temel özellikler en altta
+    // Order: strongest / offensive features at the top, harmless / basic ones at the bottom
     options.push_back({"Attacks", [this]() { attacksMenu(); }});
     options.push_back({"Tools", [this]() { toolsMenu(); }});
     options.push_back({"Connection", [this]() { connectionMenu(); }});
