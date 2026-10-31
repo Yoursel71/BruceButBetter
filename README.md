@@ -100,9 +100,16 @@ See [`boards/`](./boards) for the list and [`docs/BUILD.md`](./docs/BUILD.md) fo
 
 ## Contributing
 
-Bug fixes, modules, board ports, and docs are all welcome — see
-[CONTRIBUTING.md](./CONTRIBUTING.md). Confirm it compiles with
-`pio run -e esp32-s3-devkitc-1-psram` before opening a PR.
+**Vote on what comes next:** [feature poll](https://github.com/Yoursel71/BruceButBetter/discussions/12). Ideas go in
+[Discussions → Ideas](https://github.com/Yoursel71/BruceButBetter/discussions/categories/ideas).
+
+**Want to help?** Pull requests are welcome, small ones too. Good places to start:
+[good first issue](https://github.com/Yoursel71/BruceButBetter/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and
+[help wanted](https://github.com/Yoursel71/BruceButBetter/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22). Comment on the issue
+first so two people don't work on the same thing. Read [CONTRIBUTING.md](./CONTRIBUTING.md) and
+confirm it compiles with `pio run -e esp32-s3-devkitc-1-psram` before opening a PR.
+
+**Built one?** Post a photo in [Show and tell](https://github.com/Yoursel71/BruceButBetter/discussions/categories/show-and-tell).
 
 ## Credits
 

@@ -7,7 +7,11 @@ This project is a hardware-specific fork of [Bruce](https://github.com/pr3y/Bruc
 ## Ways to contribute
 
 - **Report a bug** — [open an issue](https://github.com/Yoursel71/BruceButBetter/issues/new/choose) with steps to reproduce, board, and what you expected.
-- **Suggest a feature** — open an issue describing the use case.
+- **Suggest a feature** — vote in the [feature poll](https://github.com/Yoursel71/BruceButBetter/discussions/12) or post in
+  [Discussions → Ideas](https://github.com/Yoursel71/BruceButBetter/discussions/categories/ideas).
+- **Pick up an issue** — [good first issue](https://github.com/Yoursel71/BruceButBetter/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+  and [help wanted](https://github.com/Yoursel71/BruceButBetter/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) have file pointers. Comment
+  on the issue first so two people don't work on the same thing.
 - **Send a fix or feature** — open a Pull Request (see below).
 - **Improve docs** — README, pinout, this guide.
 
