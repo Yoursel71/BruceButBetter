@@ -66,7 +66,16 @@ uint32_t readCallback(cmd *c) {
     FS *fs;
     if (!getFsStorage(fs) || !(*fs).exists(filepath)) return false;
 
-    serialDevice->println(readSmallFile(*fs, filepath));
+    // Stream the file instead of using readSmallFile(): that refuses files over
+    // SAFE_STACK_BUFFER_SIZE (1 KB without PSRAM, smaller than the config files) with an
+    // on-screen error that waits for a key press, which froze the serial CLI.
+    File file = fs->open(filepath, FILE_READ);
+    if (!file) return false;
+    uint8_t buf[256];
+    size_t n;
+    while ((n = file.read(buf, sizeof(buf))) > 0) serialDevice->write(buf, n);
+    file.close();
+    serialDevice->println();
     return true;
 }
 
