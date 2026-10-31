@@ -462,7 +462,9 @@ int16_t tft_display::fontHeight(int16_t font) const {
     return static_cast<int16_t>(_textSize * 8);
 }
 
-lgfx::LGFX_Device *tft_display::native() { return nullptr; }
+// Returns this device as the LovyanGFX base so callers can reach the full API (e.g. readPixel for
+// the "display pixels" screenshot). Only valid for the LovyanGFX driver.
+lgfx::LGFX_Device *tft_display::native() { return this; }
 
 int16_t tft_display::drawAlignedString(const String &s, int32_t x, int32_t y, uint8_t datum) {
     int16_t w = static_cast<int16_t>(s.length() * 6 * _textSize);

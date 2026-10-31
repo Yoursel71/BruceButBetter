@@ -1195,10 +1195,16 @@ void PresenterMode(HIDInterface *&hid, bool ble) {
     // Helper function to draw static UI elements (only once)
     auto drawStaticUI = [&]() {
         tft.fillScreen(bruceConfig.bgColor);
-
+        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+#if UI_COMPACT
+        // 128x64: title, separator, then slide and timer share the middle, hint at the bottom.
+        tft.setTextSize(1);
+        tft.drawCentreString("PRESENTER", tftWidth / 2, 0, 1);
+        tft.drawFastHLine(10, 10, tftWidth - 20, bruceConfig.priColor);
+        tft.drawCentreString("< PREV  SEL  NEXT >", tftWidth / 2, tftHeight - 8, 1);
+#else
         // Draw title "PRESENTER" at the top
         tft.setTextSize(FM);
-        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.drawCentreString("PRESENTER", tftWidth / 2, 10, 1);
 
         // Draw a separator line
@@ -1206,25 +1212,29 @@ void PresenterMode(HIDInterface *&hid, bool ble) {
 
         // Draw time label
         tft.setTextSize(FM);
-        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.drawCentreString("Time", tftWidth / 2, tftHeight / 2 + 15, 1);
 
         // Draw controls hint at bottom
         tft.setTextSize(1);
-        tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
         tft.drawCentreString("<< PREV | SEL | NEXT >>", tftWidth / 2, tftHeight - 15, 1);
+#endif
     };
 
     // Helper function to update slide number (only when changed)
     auto updateSlideDisplay = [&]() {
+        String slideStr = "Slide " + String(currentSlide);
+        tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
+#if UI_COMPACT
+        tft.fillRect(0, 13, tftWidth, 18, bruceConfig.bgColor);
+        tft.setTextSize(2);
+        tft.drawCentreString(slideStr, tftWidth / 2, 14, 1);
+#else
         // Clear previous slide area
         tft.fillRect(0, tftHeight / 2 - 35, tftWidth, 40, bruceConfig.bgColor);
-
         // Draw current slide number - large and centered
         tft.setTextSize(4);
-        tft.setTextColor(TFT_WHITE, bruceConfig.bgColor);
-        String slideStr = "Slide " + String(currentSlide);
         tft.drawCentreString(slideStr, tftWidth / 2, tftHeight / 2 - 30, 1);
+#endif
         lastDisplayedSlide = currentSlide;
     };
 
@@ -1246,10 +1256,16 @@ void PresenterMode(HIDInterface *&hid, bool ble) {
         }
 
         // Clear timer area and redraw
+        tft.setTextColor(timerStarted ? TFT_GREEN : TFT_DARKGREY, bruceConfig.bgColor);
+#if UI_COMPACT
+        tft.fillRect(0, 34, tftWidth, 18, bruceConfig.bgColor);
+        tft.setTextSize(2);
+        tft.drawCentreString(timeBuffer, tftWidth / 2, 36, 1);
+#else
         tft.fillRect(0, tftHeight / 2 + 30, tftWidth, 30, bruceConfig.bgColor);
         tft.setTextSize(3);
-        tft.setTextColor(timerStarted ? TFT_GREEN : TFT_DARKGREY, bruceConfig.bgColor);
         tft.drawCentreString(timeBuffer, tftWidth / 2, tftHeight / 2 + 35, 1);
+#endif
 
         lastDisplayedSeconds = elapsed;
     };
