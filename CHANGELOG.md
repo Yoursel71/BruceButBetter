@@ -6,6 +6,30 @@ All notable changes to BruceButBetter. Format loosely follows
 
 ## [Unreleased]
 
+## [1.4.1] — 2026-10-31
+
+### Fixed
+- **No silent switch to the RF433 module.** In *Config → RF Module*, choosing CC1101 when no CC1101
+  answers now shows the error and keeps the current module; it used to switch to "M5 RF433T/R"
+  without saying so. Leaving the menu with BACK no longer selects RF433 either.
+- **RF433 pins kept off the I²C bus on ESP-General.** The single-pin RF433 module defaulted to the
+  Grove pins, which on ESP-General are the OLED/PN532/Si5351 I²C lines (GPIO 8/18). Its defaults are
+  now GPIO 2/1, the only pins the board's RF TX/RX menu offers (shared with IR), and saved configs
+  that still hold 8/18 are corrected and rewritten at boot. Other boards keep the Grove pins.
+- **`cat` no longer freezes the serial CLI.** Files over 1 KB, including both config files, made
+  it show "File is too big" on the screen and wait for a button press, so the CLI stopped answering.
+  `cat` now streams the file.
+- **PR build check runs again.** Its trigger named a single branch "main, dev", so pull requests to
+  `master` were never compiled.
+- **Wardriving is no longer listed for ESP-General** in the README and on the site: it needs GPS,
+  which this build does not include.
+
+### Added
+- `tools/publish_web_flasher.sh <tag>` publishes a release's ESP32 / ESP32-S3 images to the browser
+  flasher (the BruceButBetter-bins repo), which had stopped at v1.2.0.
+- README and CONTRIBUTING link the [feature poll](https://github.com/Yoursel71/BruceButBetter/discussions/12)
+  and the good first issue / help wanted lists.
+
 ## [1.4.0] — 2026-10-30
 
 ### Changed
@@ -123,7 +147,8 @@ First public release of the DIY ESP32-S3 N16R8 build.
 - `esp32-c5` variants need the RISC-V toolchain; `arduino-nesso-n1` rejects the MSYS build env —
   both build from source rather than shipping a prebuilt bin.
 
-[Unreleased]: https://github.com/Yoursel71/BruceButBetter/compare/v1.4.0...master
+[Unreleased]: https://github.com/Yoursel71/BruceButBetter/compare/v1.4.1...master
+[1.4.1]: https://github.com/Yoursel71/BruceButBetter/compare/v1.4.0...v1.4.1
 [1.4.0]: https://github.com/Yoursel71/BruceButBetter/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/Yoursel71/BruceButBetter/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/Yoursel71/BruceButBetter/compare/v1.1.0...v1.2.0
