@@ -38,6 +38,7 @@ extern const int range_limits[4][2];
 extern bool rmtInstalled;
 
 bool initRfModule(String mode = "", float frequency = 0);
+bool cc1101Present(); // quiet presence check, no dialogs
 void deinitRfModule();
 void initCC1101once(SPIClass *SSPI);
 

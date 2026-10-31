@@ -73,8 +73,8 @@ char randomNameBuffer[32];
 
 // Custom device name pool used for spam ads (mixed in with random names)
 const char *customSpamNames[] = {
-    "DIY-Flipper", "Furkan-PC",  "Bruce-TR",   "Pwn-Cihaz",  "Gizli-Ajan",
-    "Casus-Modul", "Tatlim-AirPods", "Misafir-Ag", "Yedek-Telefon", "Ev-Sensoru",
+    "DIY-Flipper", "Furkan-PC",  "Bruce-TR",   "Pwn-Device", "Secret-Agent",
+    "Spy-Module", "Honey-AirPods", "Guest-Net", "Spare-Phone", "Home-Sensor",
 };
 const int customSpamNamesCount = sizeof(customSpamNames) / sizeof(customSpamNames[0]);
 

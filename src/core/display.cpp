@@ -1225,9 +1225,8 @@ static Opt_Coord drawCompactList(
                 break;
             }
         }
-        // ASCII only: the built-in 6x8 font has no Turkish letters.
-        hint = choiceList ? "OK:Degistir BACK:Geri" : "OK:Sec BACK:Geri";
-        shortHint = choiceList ? "OK:Degistir" : "OK:Sec";
+        hint = choiceList ? "OK:Change BACK:Back" : "OK:Select BACK:Back";
+        shortHint = choiceList ? "OK:Change" : "OK:Select";
     }
     drawCompactFooter(hint, shortHint, index + 1, total);
     compactFrameEnd();
@@ -1632,7 +1631,7 @@ Opt_Coord listFiles(int index, std::vector<FileList> fileList) {
     compactFrameBegin();
     drawStatusBarCompact("Files");
     // BACK goes to the parent folder in the file browser.
-    const Opt_Coord coord = drawCompactList(index, rows, "OK:Ac BACK:Ust", "OK:Ac");
+    const Opt_Coord coord = drawCompactList(index, rows, "OK:Open BACK:Up", "OK:Open");
     compactFrameEnd();
     return coord;
 #else

@@ -194,6 +194,27 @@ String readUTF16(uint8_t *pkt, uint32_t offset, uint16_t len) {
 }
 
 void updateHashUI() {
+#if UI_COMPACT
+    // 128x64: five size-2 fields ran off the bottom. One size-1 line per field, full screen.
+    tft.fillScreen(bruceConfig.bgColor);
+    tft.setTextSize(1);
+    tft.setTextColor(bruceConfig.priColor, bruceConfig.bgColor);
+    const int maxc = (tftWidth - 4) / LW;
+    int y = 0;
+    auto line = [&](const String &t) {
+        tft.setCursor(2, y);
+        tft.print(t.substring(0, maxc));
+        y += 10;
+    };
+    line("RESPONDER  NTLM:" + String(hashCount));
+    tft.drawFastHLine(0, 10, tftWidth, bruceConfig.priColor);
+    y = 12;
+    line("User: " + lastUser);
+    line("Dom:  " + lastDomain);
+    line("Host: " + lastClient);
+    line(lastQueryProtocol + ": " + lastQueryName);
+    return;
+#endif
     // auto& d = M5Cardputer.Display;
     // drawMainBorderWithTitle("RESPONDER", true); // clear
 
