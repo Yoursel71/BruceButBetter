@@ -261,7 +261,7 @@ static void cc1101AttachSpi() {
 bool cc1101Present() {
     if (bruceConfigPins.CC1101_bus.cs == GPIO_NUM_NC) return false;
     cc1101AttachSpi();
-    ELECHOUSE_cc1101.Init();
+    if (!ELECHOUSE_cc1101.Init()) return false; // MISO never went low
     const byte version = ELECHOUSE_cc1101.SpiReadStatus(0x31);
     ELECHOUSE_cc1101.setSidle();
     digitalWrite(bruceConfigPins.CC1101_bus.cs, HIGH);
