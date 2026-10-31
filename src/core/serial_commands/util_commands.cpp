@@ -339,14 +339,36 @@ uint32_t displayCallback(cmd *c) {
         serialDevice->println("\n[End of Dump]");
     } else if (opt == "info") {
         serialDevice->println(TFT_WIDTH + String("x") + TFT_HEIGHT + String("x") + ROTATION);
+#if UI_COMPACT
+    } else if (opt == "pixels") {
+        // Screenshot of the 1-bit OLED, read back from the panel's frame buffer: one hex line per
+        // row, 4 pixels per digit, most significant bit = leftmost pixel, 1 = lit.
+        lgfx::LGFX_Device *gfx = tft.native();
+        serialDevice->printf("PIXELS %dx%d\n", tftWidth, tftHeight);
+        for (int y = 0; y < tftHeight; y++) {
+            String row;
+            for (int x = 0; x < tftWidth; x += 4) {
+                uint8_t nibble = 0;
+                for (int b = 0; b < 4 && x + b < tftWidth; b++) {
+                    if (gfx->readPixel(x + b, y) != 0) nibble |= 8 >> b;
+                }
+                row += "0123456789ABCDEF"[nibble];
+            }
+            serialDevice->println(row);
+        }
+        serialDevice->println("[End of Pixels]");
+#endif
     } else {
         serialDevice->println(
             "Display command accept:\n"
             "display start : Start Logging\n"
             "display stop  : Stop Logging\n"
             "display status: Get Logging state\n"
-            "display dump  : Dumps binary log"
+            "display dump  : Dumps binary log\n"
             "display info  : Get display info"
+#if UI_COMPACT
+            "\ndisplay pixels: Screenshot of the OLED as hex rows"
+#endif
         );
         return false;
     }
