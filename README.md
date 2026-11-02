@@ -75,7 +75,13 @@ Needs [PlatformIO](https://platformio.org/).
 ```sh
 pio run -e esp32-s3-devkitc-1-psram            # build
 pio run -e esp32-s3-devkitc-1-psram -t upload  # build + flash
+pio run -e esp32-s3-devkitc-1-psram-ssd1306    # build for an SSD1306/SSD1315 OLED
 ```
+
+The `ESP-General` board drives a 128x64 I2C OLED. The default environment assumes an
+SH1106 module (132x64 GRAM, 2 px offset); the more common SSD1306/SSD1315 modules use
+`esp32-s3-devkitc-1-psram-ssd1306` over the same wiring. See
+[`boards/ESP-General/ESP-General.ini`](./boards/ESP-General/ESP-General.ini).
 
 Output lands in `.pio/build/esp32-s3-devkitc-1-psram/firmware.bin`. The full upstream board
 matrix (M5Stack, CYD, Lilygo, Marauder …) is ported in too — build any with `pio run -e <env>`.
