@@ -500,13 +500,25 @@ String generalKeyboard(
     /*---------------------------------------------------------------------------------------*/
 
     const int PAD = 2;
+#if UI_COMPACT
+    const int KBLH = LH * FM + 2;
+    const int TEXTBOX_H = LH * FM + 2;
+    const int counter_height = LH * FP;
+    const int top_button_text_y = 2 + (KBLH - LH * FM) / 2;
+    const int counter_y = KBLH + 2;
+    const int textbox_y = counter_y + counter_height;
+    const int textbox_text_y = textbox_y + 1;
+    const int keyboard_start_y = textbox_y + TEXTBOX_H;
+#else
     const int KBLH = 6 + LH * FM;
+    const int TEXTBOX_H = KBLH;
     const int counter_height = LH * FP;
     const int top_button_text_y = 2 + (KBLH - LH * FM) / 2;
     const int counter_y = KBLH + 4;
     const int textbox_y = KBLH + counter_height + 5;
     const int textbox_text_y = textbox_y + 2;
     const int keyboard_start_y = textbox_y + KBLH + 2;
+#endif
 
     const int btns_layout[buttons_number][3] = {
         {1 * PAD + 0 * LW * FM,  3 * LW * FM, 1 * PAD + 0 * LW * FM + LW * FM / 2  }, // Ok
@@ -579,7 +591,7 @@ String generalKeyboard(
             if (y < 0 || old_y < 0 || caps != last_caps || direction != last_dir) {
                 last_caps = caps;
                 last_dir = direction;
-                tft.fillRect(0, 1, tftWidth, KBLH + 2, bruceConfig.bgColor);
+                tft.fillRect(0, 0, tftWidth, KBLH + 2, bruceConfig.bgColor);
                 // Draw the buttons_strings borders
                 for (int i = 0; i < buttons_number; ++i) {
                     tft.drawRect(
@@ -591,7 +603,7 @@ String generalKeyboard(
                     );
                 }
 
-                tft.drawRect(3, textbox_y, tftWidth - 3, KBLH, bruceConfig.priColor); // typed string border
+                tft.drawRect(3, textbox_y, tftWidth - 3, TEXTBOX_H, bruceConfig.priColor); // typed string border
 
                 /* Highlight the corresponding button when the user cursor is over it */
                 // OK
@@ -700,10 +712,18 @@ String generalKeyboard(
             // reset the text box if needed
             if (current_text.length() == (max_FM_size) || current_text.length() == (max_FM_size + 1) ||
                 current_text.length() == (max_FP_size) || current_text.length() == (max_FP_size + 1))
-                tft.fillRect(3, textbox_y, tftWidth - 3, KBLH, bruceConfig.bgColor);
+                tft.fillRect(3, textbox_y, tftWidth - 3, TEXTBOX_H, bruceConfig.bgColor);
             // write the text
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor));
 
+#if UI_COMPACT
+            int shown_len = current_text.length();
+            if (shown_len > max_FP_size) shown_len = max_FP_size;
+            String shown_text = mask_input ? repeatString(shown_len, "*")
+                                           : current_text.substring(current_text.length() - shown_len);
+            tft.fillRect(4, textbox_y + 1, tftWidth - 6, LH * FM, bruceConfig.bgColor);
+            tft.drawString(shown_text, 5, textbox_text_y);
+#else
             if (current_text.length() >
                 max_FM_size) { // if the text is too long, we try to set the smaller font
                 tft.setTextSize(FP);
@@ -735,8 +755,9 @@ String generalKeyboard(
                     (mask_input ? repeatString(current_text.length(), "*") : current_text), 5, textbox_text_y
                 );
             }
+#endif
             // Draw the textbox border again(?)
-            tft.drawRect(3, textbox_y, tftWidth - 3, KBLH, bruceConfig.priColor); // typed string border
+            tft.drawRect(3, textbox_y, tftWidth - 3, TEXTBOX_H, bruceConfig.priColor); // typed string border
 
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
             tft.setTextSize(FM);
@@ -1049,6 +1070,76 @@ String generalKeyboard(
 
                     redraw = true;
                 }
+            }
+#elif defined(NO_LR_BUTTONS) // 4 physical buttons: UP/DOWN walk the layout, OK selects, BACK cancels
+            if (check(EscPress)) {
+                y = -1;
+                x = buttons_number - 1;
+                selection_made = true;
+            } else if (check(SelPress)) {
+                selection_made = true;
+            } else if (check(DownPress) || check(NextPress)) {
+                if (y < 0) {
+                    x++;
+                    if (x >= buttons_number) {
+                        y = 0;
+                        x = 0;
+                    }
+                } else {
+                    x++;
+                    if (x >= KeyboardWidth) {
+                        x = 0;
+                        y++;
+                    }
+                    if (y >= KeyboardHeight) {
+                        y = -1;
+                        x = 0;
+                    }
+                }
+                while (y >= 0 && y < KeyboardHeight && keys[y][x][caps] == '\0') {
+                    x++;
+                    if (x >= KeyboardWidth) {
+                        x = 0;
+                        y++;
+                    }
+                    if (y >= KeyboardHeight) {
+                        y = -1;
+                        x = 0;
+                        break;
+                    }
+                }
+                redraw = true;
+            } else if (check(UpPress) || check(PrevPress)) {
+                if (y < 0) {
+                    x--;
+                    if (x < 0) {
+                        y = KeyboardHeight - 1;
+                        x = KeyboardWidth - 1;
+                    }
+                } else {
+                    x--;
+                    if (x < 0) {
+                        x = KeyboardWidth - 1;
+                        y--;
+                    }
+                    if (y < 0) {
+                        y = -1;
+                        x = buttons_number - 1;
+                    }
+                }
+                while (y >= 0 && y < KeyboardHeight && keys[y][x][caps] == '\0') {
+                    x--;
+                    if (x < 0) {
+                        x = KeyboardWidth - 1;
+                        y--;
+                    }
+                    if (y < 0) {
+                        y = -1;
+                        x = buttons_number - 1;
+                        break;
+                    }
+                }
+                redraw = true;
             }
 #elif defined(HAS_5_BUTTONS) // Smoochie and Marauder-Mini
             if (check(SelPress)) {
