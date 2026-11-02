@@ -828,10 +828,16 @@ int loopOptions(
         if (gridNavigation) {
             int dx = 0;
             int dy = 0;
+#if defined(NO_LR_BUTTONS)
+            // 4-button layout: LEFT/RIGHT are not wired, so UP/DOWN walk the grid in reading order.
+            if (check(UpPress)) dx = -1;
+            else if (check(DownPress)) dx = 1;
+#else
             if (check(PrevPress)) dx = -1;
             else if (check(NextPress)) dx = 1;
             else if (check(UpPress)) dy = -1;
             else if (check(DownPress)) dy = 1;
+#endif
             if (dx || dy) {
                 const int target = iconGridMove(index, static_cast<int>(options.size()), dx, dy);
                 if (dx > 0 || dy > 0) {

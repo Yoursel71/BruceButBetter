@@ -30,6 +30,10 @@ void rf_listen() {
     while (!check(SelPress) && !check(EscPress)) {
         if (check(PrevPress)) { freq -= 0.1f; }
         if (check(NextPress)) { freq += 0.1f; }
+#if defined(NO_LR_BUTTONS)
+        if (check(UpPress)) { freq -= 0.1f; }
+        if (check(DownPress)) { freq += 0.1f; }
+#endif
 
         freq = constrain(freq, 300.0f, 928.0f);
         if (freq != last_freq) {

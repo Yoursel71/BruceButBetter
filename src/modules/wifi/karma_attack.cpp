@@ -2735,6 +2735,10 @@ void karma_setup() {
             broadcastAttack.update();
         }
 
+#if defined(NO_LR_BUTTONS)
+        if (check(DownPress)) NextPress = true;
+        if (check(UpPress)) PrevPress = true;
+#endif
         if (check(NextPress)) {
             if (!karmaPaused) esp_wifi_set_promiscuous(false);
             channl++;
