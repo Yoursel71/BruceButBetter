@@ -4,91 +4,100 @@
 #include "core/sd_functions.h"
 #include "core/utils.h"
 #include "modules/NRF24/nrf_common.h"
+#include "modules/rf/rf_utils.h"
 #include <Wire.h>
 #include <globals.h>
 
-// Friendly name for the well-known I2C addresses this firmware cares about.
+// Short name for the well-known I2C addresses this firmware cares about.
 static const char *i2cLabel(uint8_t a) {
     switch (a) {
         case 0x3C:
-        case 0x3D: return "OLED (SSD1306/SH1106)";
+        case 0x3D: return "OLED";
         case 0x24: return "PN532 NFC";
         case 0x60:
-        case 0x61: return "Si5351 clock-gen";
-        case 0x68: return "RTC / IMU";
+        case 0x61: return "Si5351";
+        case 0x68: return "RTC/IMU";
         case 0x76:
-        case 0x77: return "BMx sensor";
+        case 0x77: return "BMx";
         case 0x0B:
-        case 0x55: return "fuel gauge / PMIC";
-        default: return "unknown";
+        case 0x55: return "Gauge";
+        default: return "?";
     }
 }
 
-void SelfTestMenu::optionsMenu() {
-    // Probe everything first, then draw once — a shared-SPI probe can't glitch
-    // the screen mid-render this way.
-    Wire.begin(bruceConfigPins.i2c_bus.sda, bruceConfigPins.i2c_bus.scl);
+// One result row: the name, then OK or -- in a fixed column so they line up (the compact list
+// shows 17 characters per row).
+static Option resultRow(const String &name, bool ok) {
+    String label = name.substring(0, 13);
+    while (label.length() < 14) label += ' ';
+    label += ok ? "OK" : "--";
+    return Option(label, nullptr);
+}
 
-    String i2cList;
-    int found = 0;
+static bool i2cFound(const std::vector<uint8_t> &found, uint8_t a, uint8_t b = 0) {
+    for (uint8_t f : found) {
+        if (f == a || (b && f == b)) return true;
+    }
+    return false;
+}
+
+// Probes everything first and returns one row per module. The PN532, the Si5351 (on boards that
+// have it) and the SPI modules always get a row, so a missing one shows "--" instead of
+// disappearing; any other I2C device that answers is listed by its address.
+static std::vector<Option> runChecks() {
+    std::vector<Option> rows;
+    rows.push_back(Option("Run again", nullptr));
+
+    Wire.begin(bruceConfigPins.i2c_bus.sda, bruceConfigPins.i2c_bus.scl);
+    std::vector<uint8_t> found;
     for (uint8_t a = 0x01; a <= 0x7F; a++) {
         Wire.beginTransmission(a);
-        if (Wire.endTransmission() == 0) {
-            found++;
-            char line[52];
-            snprintf(line, sizeof(line), "  [OK] 0x%02X %s", a, i2cLabel(a));
-            i2cList += String(line) + "\n";
-        }
+        if (Wire.endTransmission() == 0) found.push_back(a);
+    }
+    rows.push_back(resultRow("PN532 NFC", i2cFound(found, 0x24)));
+#ifdef HAS_SI5351
+    rows.push_back(resultRow("Si5351", i2cFound(found, 0x60, 0x61)));
+#endif
+    for (uint8_t a : found) {
+        if (a == 0x24 || a == 0x60 || a == 0x61) continue;
+        char name[16];
+        snprintf(name, sizeof(name), "0x%02X %s", a, i2cLabel(a));
+        rows.push_back(resultRow(name, true));
     }
 
-    // SPI modules — display-free live probes (CC1101's own probe pops a dialog,
-    // so it's left to the RF menu; it answers on the same SPI bus as these).
-    bool sdOk = setupSdCard();
-
+    // SPI modules: quiet probes, none of them draws on the screen.
+    rows.push_back(resultRow("SD card", setupSdCard()));
+    rows.push_back(resultRow("CC1101", cc1101Present()));
     bool nrf1Ok = false;
     if (nrf_start(NRF_MODE_SPI)) {
         nrf1Ok = NRFradio.isChipConnected();
         NRFradio.powerDown();
     }
+    rows.push_back(resultRow("NRF24 #1", nrf1Ok));
 #ifdef NRF24_2_CE_PIN
     bool nrf2Ok = false;
     if (nrf_start2()) {
         nrf2Ok = NRFradio2.isChipConnected();
         NRFradio2.powerDown();
     }
+    rows.push_back(resultRow("NRF24 #2", nrf2Ok));
 #endif
+    return rows;
+}
 
-    drawMainBorderWithTitle("Hardware Self-Test");
-    padprintln("");
-    padprintln("I2C bus:");
-    if (found == 0) {
-        padprintln("  (none answered)");
-    } else {
-        int s = 0;
-        while (s < (int)i2cList.length()) {
-            int nl = i2cList.indexOf('\n', s);
-            if (nl < 0) nl = i2cList.length();
-            padprintln(i2cList.substring(s, nl));
-            s = nl + 1;
-        }
+// Results are a normal list: UP/DOWN scroll, OK on any row runs the checks again, BACK leaves.
+void SelfTestMenu::optionsMenu() {
+    int index = 0;
+    while (true) {
+        displayInfo("Testing...");
+        std::vector<Option> rows = runChecks();
+        bool again = false;
+        for (Option &row : rows) row.operation = [&again]() { again = true; };
+        const int chosen = loopOptions(rows, MENU_TYPE_SUBMENU, "Self-Test", index);
+        if (!again) break;
+        index = chosen < 0 ? 0 : chosen;
     }
-    padprintln("");
-    padprintln("SPI modules:");
-    padprintln(String("  microSD  : ") + (sdOk ? "[OK]" : "[--]"));
-    padprintln(String("  NRF24 #1 : ") + (nrf1Ok ? "[OK]" : "[--]"));
-#ifdef NRF24_2_CE_PIN
-    padprintln(String("  NRF24 #2 : ") + (nrf2Ok ? "[OK]" : "[--]"));
-#endif
-    padprintln("");
-    padprintln("ESC / OK to exit");
-
-    while (1) {
-        if (check(EscPress) || check(SelPress)) {
-            returnToMenu = true;
-            break;
-        }
-        delay(20);
-    }
+    returnToMenu = true;
 }
 
 void SelfTestMenu::drawIcon(float scale) {

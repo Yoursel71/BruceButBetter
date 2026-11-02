@@ -57,6 +57,18 @@ String scanChannels(bool web, bool dual) {
         int x = i * _BW;
         int c = i;
 
+#if UI_COMPACT
+        // 128x64: the 80 channels spread over the full width (1-2 px each) and the bars rise from
+        // the frequency labels, scaled to the screen. No channel numbers: they overlapped here.
+        (void)x;
+        (void)c;
+        const int x0 = i * tftWidth / CHANNELS;
+        const int w = (i + 1) * tftWidth / CHANNELS - x0;
+        const int graphH = tftHeight - LH - 2;
+        const int h = level * graphH / 125;
+        tft.fillRect(x0, 0, w, graphH - h, bruceConfig.bgColor);
+        tft.fillRect(x0, graphH - h, w, h, bruceConfig.priColor);
+#else
         tft.drawFastVLine(
             x, tftHeight - (10 + level), level, (i % 2 == 0) ? bruceConfig.priColor : TFT_DARKGREY
         ); // for level display
@@ -67,6 +79,7 @@ String scanChannels(bool web, bool dual) {
         tft.drawFastVLine(x, 0, level, bruceConfig.secColor); /// for top display
         // show 5 channel gap only
         if (c % 5 == 0 && c != 0) { tft.drawCentreString(String(c).c_str(), x, tftHeight / 2, 1); }
+#endif
 
         if (web) {
             if (i > 0) result += ",";
@@ -79,12 +92,24 @@ String scanChannels(bool web, bool dual) {
                    // used in the WebUI (Future)
 }
 
-void nrf_spectrum() {
-    tft.fillScreen(bruceConfig.bgColor);
+// Frequency labels under the graph. 128x64 uses short side labels so "2x" (both radios) fits.
+static void drawSpectrumLabels() {
+#if UI_COMPACT
+    tft.setTextSize(FP);
+    tft.drawString("2.40", 0, tftHeight - LH);
+    tft.drawCentreString("2.44GHz", tftWidth / 2, tftHeight - LH, 1);
+    tft.drawRightString("2.48", tftWidth, tftHeight - LH, 1);
+#else
     tft.setTextSize(FP);
     tft.drawString("2.40Ghz", 0, tftHeight - LH);
     tft.drawCentreString("2.44Ghz", tftWidth / 2, tftHeight - LH, 1);
     tft.drawRightString("2.48Ghz", tftWidth, tftHeight - LH, 1);
+#endif
+}
+
+void nrf_spectrum() {
+    tft.fillScreen(bruceConfig.bgColor);
+    drawSpectrumLabels();
 
     if (nrf_start(NRF_MODE_SPI)) { // This function only works on SPI
         NRFradio.setAutoAck(false);
@@ -115,7 +140,11 @@ void nrf_spectrum() {
             dual = true;
             tft.setTextSize(FP);
             tft.setTextColor(bruceConfig.secColor, bruceConfig.bgColor);
+#if UI_COMPACT
+            tft.drawString("2x", 28, tftHeight - LH);
+#else
             tft.drawString("2x", tftWidth - 18, 2);
+#endif
         }
 #endif
 
@@ -141,10 +170,7 @@ void nrf_spectrum() {
 
 void nrf_spectrum_csv() {
     tft.fillScreen(bruceConfig.bgColor);
-    tft.setTextSize(FP);
-    tft.drawString("2.40Ghz", 0, tftHeight - LH);
-    tft.drawCentreString("2.44Ghz", tftWidth / 2, tftHeight - LH, 1);
-    tft.drawRightString("2.48Ghz", tftWidth, tftHeight - LH, 1);
+    drawSpectrumLabels();
 
     if (!nrf_start(NRF_MODE_SPI)) {
         displayError("NRF24 not found");

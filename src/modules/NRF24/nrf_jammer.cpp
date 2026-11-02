@@ -1085,9 +1085,9 @@ void nrf_jammer_presets() {
     options.clear();
     for (int i = 0; i < NRF_JAM_MODE_COUNT; i++) {
         NrfJamMode m = (NrfJamMode)i;
-        labels.push_back(String(MODE_INFO[i].name) + " - Hizli");
+        labels.push_back(String(MODE_INFO[i].name) + " - Fast");
         options.push_back({labels.back().c_str(), [m]() { nrf_jam_quick(m, false); }});
-        labels.push_back(String(MODE_INFO[i].name) + " - Agir");
+        labels.push_back(String(MODE_INFO[i].name) + " - Heavy");
         options.push_back({labels.back().c_str(), [m]() { nrf_jam_quick(m, true); }});
     }
     options.push_back({"Single CH", []() { nrf_channel_jammer(); }});

@@ -39,8 +39,8 @@ void BleMenu::optionsMenu() {
     options.push_back({"BLE Keyboard", [=]() { ducky_keyboard(hid_ble, true); }});
 #endif
     options.push_back({"BLE Spam", [=]() { spamMenu(); }});
-    options.push_back({"Jammer (Hizli)", nrf_jam_ble_fast});
-    options.push_back({"Jammer (Agir)", nrf_jam_ble_heavy});
+    options.push_back({"Jammer (Fast)", nrf_jam_ble_fast});
+    options.push_back({"Jammer (Heavy)", nrf_jam_ble_heavy});
 
 #if !defined(LITE_VERSION)
     options.push_back({"BLE Suite",       [=]() { BleSuiteMenu(); }});
