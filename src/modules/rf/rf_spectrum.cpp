@@ -243,9 +243,11 @@ void rf_CC1101_rssi() {
 #endif
                 int range = range_limits[bruceConfigPins.rfScanRange][1] -
                             range_limits[bruceConfigPins.rfScanRange][0] + 1;
-                int space = tftWidth / range;
                 for (int i = 0; i < range; i++) {
-                    tft.drawFastVLine(space * i, tftHeight - SPEC_BOTTOM, UI_COMPACT ? 2 : 5, bruceConfig.priColor);
+                    // Scale across the full width (see the bargraph sweep below): tftWidth/range
+                    // is 0 when range > tftWidth, which would stack every tick on x=0.
+                    const int x = (int)((long)i * tftWidth / range);
+                    tft.drawFastVLine(x, tftHeight - SPEC_BOTTOM, UI_COMPACT ? 2 : 5, bruceConfig.priColor);
                 }
                 std::fill(bar_size.begin(), bar_size.end(), 0);
                 std::fill(peak_hold.begin(), peak_hold.end(), 0);
@@ -290,8 +292,9 @@ void rf_CC1101_rssi() {
             int range = range_limits[bruceConfigPins.rfScanRange][1] -
                         range_limits[bruceConfigPins.rfScanRange][0] + 1;
 
-            int space = tftWidth / range;
-            const int barW = space > 2 ? space - 2 : 1; // "All ranges" on 128 px leaves 2 px a bar
+            // Map each bar to an x span across the full width. Ranges with more bars than
+            // pixels ("All ranges" on a 128 px panel) used to divide to space==0 and stack
+            // every bar on x=0; scaling per bar spreads them out and keeps a 1 px minimum.
             int max_idx = 0;
             for (int i = 0; i < range; i++) {
                 if (EscPress || SelPress) break;
@@ -304,12 +307,16 @@ void rf_CC1101_rssi() {
                 if (size > bar_size[i]) bar_size[i] = size;
                 else bar_size[i] = bar_size[i] - (bar_size[i] - size) / 2; // slow down decrease
                 if (bar_size[i] > peak_hold[i]) peak_hold[i] = bar_size[i]; // peak-hold envelope
+                const int x0 = (int)((long)i * tftWidth / range);
+                int colW = (int)((long)(i + 1) * tftWidth / range) - x0;
+                if (colW < 1) colW = 1;
+                const int barW = colW > 2 ? colW - 2 : 1;
                 tft.fillRect(
-                    i * space, tftHeight - SPEC_BOTTOM - bar_size[i], barW, bar_size[i], bruceConfig.priColor
+                    x0, tftHeight - SPEC_BOTTOM - bar_size[i], barW, bar_size[i], bruceConfig.priColor
                 );
-                tft.fillRect(i * space, SPEC_TOP, space, max_bar_size - bar_size[i], bruceConfig.bgColor);
+                tft.fillRect(x0, SPEC_TOP, colW, max_bar_size - bar_size[i], bruceConfig.bgColor);
                 // peak-hold cap, redrawn each sweep above the live bar
-                tft.drawFastHLine(i * space, tftHeight - SPEC_BOTTOM - peak_hold[i], barW, bruceConfig.secColor);
+                tft.drawFastHLine(x0, tftHeight - SPEC_BOTTOM - peak_hold[i], barW, bruceConfig.secColor);
                 if (bar_size[i] > bar_size[max_idx] && bar_size[i] > min_value) max_idx = i;
             }
             if (bar_size[max_idx] > min_value) {

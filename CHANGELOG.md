@@ -6,6 +6,42 @@ All notable changes to BruceButBetter. Format loosely follows
 
 ## [Unreleased]
 
+## [1.5.0] — 2026-11-03
+
+### Added
+- **SSD1306 / SSD1315 display variant for ESP-General.** The board file now describes both panel
+  families over the same wiring: `esp32-s3-devkitc-1-psram` stays on SH1106 (132x64 GRAM, 2 px
+  offset, the default) and `esp32-s3-devkitc-1-psram-ssd1306` drives the common SSD1306/SSD1315
+  modules (128x64, no offset). Only `LOVYAN_PANEL`, `TFT_MEM_WIDTH` and `TFT_OFFSET_X` differ, so
+  the variants cannot drift apart. (Contributed by Denys Ryazanov, #15.)
+- **On-screen keyboard fits the 128x64 OLED.** Under `UI_COMPACT` the button row, input box and
+  counter pack into 30 px, leaving 8 px per key row, and the input box scrolls its tail so a long
+  SSID no longer overflows into the keyboard. (#15.)
+- **Four-button build variant** `esp32-s3-devkitc-1-psram-ssd1306-4btn` for boards that only wire
+  UP/DOWN/OK/BACK: `-DNO_LR_BUTTONS=1` walks the keyboard/menu grid and the RF-frequency and
+  Karma-channel controls with UP/DOWN. The flag can be added to any environment.
+- **Compact 128x64 layouts across more screens** — Self-Test list, RF spectrum, U2F, Responder and
+  BLE Suite — plus a `display pixels` serial command that dumps the OLED frame buffer as hex rows
+  for screenshots. (#13.)
+
+### Fixed
+- **ESP-General six-button navigation restored.** `NO_LR_BUTTONS` had been forced on every
+  ESP-General build, disabling the wired LEFT/RIGHT buttons (GPIO 38/39) and rerouting everything
+  onto UP/DOWN. It is now opt-in per environment, so the full six-button board uses LEFT/RIGHT
+  again; four-button boards select the `-4btn` variant.
+- **RF spectrum bargraph no longer collapses onto x=0.** On the 128 px panel a scan range with more
+  bars than pixels divided to a zero-width column and stacked every bar, tick and peak marker on the
+  left edge. Each bar is now scaled across the full width with a 1 px minimum.
+- **`display pixels` guards a null frame buffer.** The command dereferenced `tft.native()` with no
+  check; backends whose `native()` returns null (Arduino_GFX) would crash. It now reports that the
+  backend has no readable frame buffer instead.
+- **BLE scan picker bounds-checks its parallel device vectors.** The compact device list indexed the
+  name/RSSI/fast-pair vectors by the address index; it now stops at the shortest vector so a
+  transient size mismatch cannot read out of bounds.
+- **`showAdaptiveMessage` reports cancel correctly on 128x64.** Its compact path returned the index
+  of whatever button BACK landed on, so a cancel could read as a confirm; `displayMessage` now
+  reports cancel through an optional flag and the compact path returns -1 on cancel.
+
 ## [1.4.1] — 2026-10-31
 
 ### Fixed

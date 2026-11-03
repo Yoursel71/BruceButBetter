@@ -153,9 +153,12 @@ bool wakeUpScreen();
 
 void displayRedStripe(String text, uint16_t fgcolor = TFT_WHITE, uint16_t bgcolor = TFT_RED);
 
+// Returns the selected button index (0=left, 1=center, 2=right). When `cancelled` is given it is
+// set true if the user backed out (BACK on a one-button dialog or a "Cancel"-labelled button, or
+// no buttons at all) so callers can tell a cancel apart from a confirm on that same index.
 int8_t displayMessage(
     const char *message, const char *leftButton, const char *centerButton, const char *rightButton,
-    uint16_t color
+    uint16_t color, bool *cancelled = nullptr
 );
 void displayError(String txt, bool waitKeyPress = false);    // Red Stripe
 void displayWarning(String txt, bool waitKeyPress = false);  // Yellow Stripe

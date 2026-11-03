@@ -27,6 +27,16 @@ jobs:
               env: "esp32-s3-devkitc-1-psram",
               partitions: { bootloader_addr: "0x0" },
             }
+          - {
+              name: "ESP-General SSD1306 (6-button)",
+              env: "esp32-s3-devkitc-1-psram-ssd1306",
+              partitions: { bootloader_addr: "0x0" },
+            }
+          - {
+              name: "ESP-General SSD1306 (4-button)",
+              env: "esp32-s3-devkitc-1-psram-ssd1306-4btn",
+              partitions: { bootloader_addr: "0x0" },
+            }
     steps:
       - uses: actions/checkout@v4
 

@@ -3780,6 +3780,12 @@ String selectTargetFromScan(const char *title) {
         std::vector<String> macs;
         if (xSemaphoreTake(scannerData.mutex, portMAX_DELAY)) {
             for (size_t i = 0; i < scannerData.deviceAddresses.size(); i++) {
+                // deviceNames/deviceRssi/deviceFastPair are parallel to deviceAddresses, but a
+                // scan callback can push to them non-atomically, so the sizes transiently differ.
+                // Stop at the shortest to keep operator[] in bounds.
+                if (i >= scannerData.deviceNames.size() || i >= scannerData.deviceRssi.size() ||
+                    i >= scannerData.deviceFastPair.size())
+                    break;
                 String nm = scannerData.deviceNames[i];
                 if (nm.isEmpty()) nm = "Unknown";
                 String label = nm + " " + String(scannerData.deviceRssi[i]) + "dB";
@@ -5249,7 +5255,11 @@ int8_t showAdaptiveMessage(
         if (autoProgress) delay(1500);
         return 0;
     }
-    return displayMessage(line1, b1, b2, b3, color);
+    // Honour the contract the full-screen path below uses: a cancel (BACK) returns -1, not the
+    // index of the button BACK happened to land on, so callers never read a cancel as a confirm.
+    bool cancelled = false;
+    int8_t choice = displayMessage(line1, b1, b2, b3, color, &cancelled);
+    return cancelled ? -1 : choice;
 #endif
     if (strlen(btn2) > 0) buttonCount++;
     if (strlen(btn3) > 0) buttonCount++;

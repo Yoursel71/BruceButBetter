@@ -291,8 +291,9 @@ void drawButton(
 
 int8_t displayMessage(
     const char *message, const char *leftButton, const char *centerButton, const char *rightButton,
-    uint16_t color
+    uint16_t color, bool *cancelled
 ) {
+    if (cancelled) *cancelled = false;
 #ifdef HAS_SCREEN
     uint8_t oldTextDatum = tft.getTextDatum();
 #endif
@@ -369,6 +370,7 @@ int8_t displayMessage(
 #ifdef HAS_SCREEN
         tft.setTextDatum(oldTextDatum);
 #endif
+        if (cancelled) *cancelled = true;
         return -1;
     }
 
@@ -391,6 +393,7 @@ int8_t displayMessage(
 #if UI_COMPACT
         if (cancelIndex >= 0 && check(EscPress)) {
             selected = cancelIndex;
+            if (cancelled) *cancelled = true;
             break;
         }
 #endif
