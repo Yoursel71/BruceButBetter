@@ -344,6 +344,11 @@ uint32_t displayCallback(cmd *c) {
         // Screenshot of the 1-bit OLED, read back from the panel's frame buffer: one hex line per
         // row, 4 pixels per digit, most significant bit = leftmost pixel, 1 = lit.
         lgfx::LGFX_Device *gfx = tft.native();
+        if (gfx == nullptr) {
+            // Only LovyanGFX backends expose a readable frame buffer; Arduino_GFX returns null.
+            serialDevice->println("[Pixels not available on this display backend]");
+            return true;
+        }
         serialDevice->printf("PIXELS %dx%d\n", tftWidth, tftHeight);
         for (int y = 0; y < tftHeight; y++) {
             String row;
