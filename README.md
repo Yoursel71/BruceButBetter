@@ -73,15 +73,28 @@ esptool.py --chip esp32s3 --port COMx write_flash 0x0 Bruce-esp32-s3-N16R8.bin
 Needs [PlatformIO](https://platformio.org/).
 
 ```sh
-pio run -e esp32-s3-devkitc-1-psram            # build
+pio run -e esp32-s3-devkitc-1-psram            # build (default: SH1106, 6 buttons)
 pio run -e esp32-s3-devkitc-1-psram -t upload  # build + flash
 pio run -e esp32-s3-devkitc-1-psram-ssd1306    # build for an SSD1306/SSD1315 OLED
 ```
 
-The `ESP-General` board drives a 128x64 I2C OLED. The default environment assumes an
-SH1106 module (132x64 GRAM, 2 px offset); the more common SSD1306/SSD1315 modules use
-`esp32-s3-devkitc-1-psram-ssd1306` over the same wiring. See
-[`boards/ESP-General/ESP-General.ini`](./boards/ESP-General/ESP-General.ini).
+The `ESP-General` board drives a 128x64 I2C OLED over the same wiring regardless of panel; pick the
+environment that matches the module and buttons you actually fitted:
+
+| environment | flash | panel | buttons |
+|---|---|---|---|
+| `esp32-s3-devkitc-1` | 8 MB | SH1106 / SSD1106G | 6 |
+| `esp32-s3-devkitc-1-psram` | 16 MB | SH1106 / SSD1106G | 6 — **default** |
+| `esp32-s3-devkitc-1-psram-ssd1306` | 16 MB | SSD1306 / SSD1315 | 6 |
+| `esp32-s3-devkitc-1-psram-ssd1306-4btn` | 16 MB | SSD1306 / SSD1315 | 4 |
+
+The full board wires six buttons (UP/DOWN/LEFT/RIGHT/OK/BACK on GPIO 15/16/38/39/40/41). The
+`-4btn` variant is for builds that only wire UP/DOWN/OK/BACK: it drops LEFT/RIGHT and walks the
+keyboard/menu grid plus the RF-frequency and Karma-channel controls with UP/DOWN instead
+(`-DNO_LR_BUTTONS=1`, which you can add to any other environment too). SH1106 panels need a 132x64
+GRAM with a 2 px column offset; SSD1306/SSD1315 use 128x64 with no offset — the wrong one leaves the
+screen dark. See [`boards/ESP-General/ESP-General.ini`](./boards/ESP-General/ESP-General.ini) and
+[`boards/ESP-General/pins_arduino.h`](./boards/ESP-General/pins_arduino.h) for the full pin map.
 
 Output lands in `.pio/build/esp32-s3-devkitc-1-psram/firmware.bin`. The full upstream board
 matrix (M5Stack, CYD, Lilygo, Marauder …) is ported in too — build any with `pio run -e <env>`.
