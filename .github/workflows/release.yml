@@ -25,6 +25,8 @@ jobs:
         board:
           - { env: "esp32-s3-devkitc-1-psram",        family: "ESP32-S3",}
           - { env: "esp32-s3-devkitc-1",              family: "ESP32-S3",}
+          - { env: "esp32-s3-devkitc-1-psram-ssd1306", family: "ESP32-S3",}
+          - { env: "esp32-s3-devkitc-1-psram-ssd1306-4btn", family: "ESP32-S3",}
           - { env: "m5stack-cardputer",               family: "ESP32-S3",}
           - { env: "m5stack-cplus2",                  family: "ESP32",}
           - { env: "m5stack-cplus1_1",                family: "ESP32",}
